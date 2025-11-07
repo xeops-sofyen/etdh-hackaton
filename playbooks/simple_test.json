@@ -1,0 +1,44 @@
+{
+  "mission_id": "test_flight_001",
+  "mission_type": "patrol",
+  "description": "Simple test flight for initial validation",
+  "waypoints": [
+    {
+      "lat": 48.8788,
+      "lon": 2.3675,
+      "alt": 50,
+      "action": "photo"
+    },
+    {
+      "lat": 48.8790,
+      "lon": 2.3680,
+      "alt": 50,
+      "action": "hover",
+      "hover_duration_sec": 5
+    },
+    {
+      "lat": 48.8788,
+      "lon": 2.3675,
+      "alt": 50,
+      "action": null
+    }
+  ],
+  "flight_parameters": {
+    "altitude_m": 50,
+    "speed_mps": 5,
+    "pattern": "direct",
+    "heading_mode": "auto"
+  },
+  "camera_settings": {
+    "mode": "photo",
+    "gimbal_tilt": -90
+  },
+  "contingencies": {
+    "low_battery": "land_immediately",
+    "gps_loss": "hover_and_alert",
+    "obstacle_detected": "hover",
+    "communication_loss": "return_to_home"
+  },
+  "auto_execute": false,
+  "max_duration_min": 10
+}
