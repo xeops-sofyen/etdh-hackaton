@@ -1,6 +1,6 @@
 # Heimdall - ETDH Hackathon Summary
 
-**Team:** XeOps Security
+**Team:** Sofyen, Dmytro, Titouan
 **Challenge:** UAS-1 - Autonomous Drone Task Execution from Human-Defined Playbooks
 **Repository:** https://github.com/xeops-sofyen/etdh-hackaton
 
@@ -52,7 +52,6 @@ A complete system that translates high-level mission JSON into Parrot Olympe SDK
 - **Status:** ✅ Complete
 - **Files:**
   - `simple_test.json` - Basic test flight
-  - `coastal_patrol.json` - German North Sea patrol mission
 
 ### 5. Documentation
 - **Status:** ✅ Complete (All in English)
@@ -71,15 +70,15 @@ A complete system that translates high-level mission JSON into Parrot Olympe SDK
 
 ---
 
-## 🎯 Your Role in the Demo
+## 🎯 Team Responsibilities
 
-### What You Own
+### Backend (Sofyen)
 - **Playbook → Olympe Translation** ⭐ Core component
 - **Backend API** for mission execution
 - **Validation & Safety** layer
 
-### What Your Teammate Owns
-- **Frontend Dashboard** (connects to your API)
+### Frontend (Dmytro & Titouan)
+- **Frontend Dashboard** (connects to API)
 - **Mission visualization**
 - **User interface**
 
@@ -112,7 +111,7 @@ Natural Language Input
        ↓
 JSON Playbook (Mission Definition)
        ↓
-Olympe Translator ⭐ (Your Component)
+Olympe Translator ⭐ (Core Component)
        ↓
 Parrot Drone Execution
        ↓
@@ -124,10 +123,10 @@ Real-time Telemetry
 **Option A - With Physical Drone:**
 ```bash
 # Show the playbook
-cat playbooks/coastal_patrol.json
+cat playbooks/simple_test.json
 
 # Execute via quickstart
-python backend/quickstart.py --playbook playbooks/coastal_patrol.json
+python backend/quickstart.py --playbook playbooks/simple_test.json
 
 # Drone takes off, flies waypoints, takes photos, lands
 ```
@@ -294,8 +293,7 @@ pip install -r requirements.txt
 ## 📞 Contact
 
 - **GitHub:** https://github.com/xeops-sofyen/etdh-hackaton
-- **Team:** XeOps Security
-- **Website:** https://xeops.ai
+- **Team:** Sofyen, Dmytro, Titouan
 
 ---
 

@@ -105,7 +105,7 @@ If you don't have Sphinx, you can still test the validation:
 ```bash
 # Validation test only
 python backend/quickstart.py \
-  --playbook playbooks/coastal_patrol.json \
+  --playbook playbooks/simple_test.json \
   --validate-only
 ```
 
@@ -201,15 +201,15 @@ python backend/quickstart.py --playbook playbooks/my_mission.json
 
 ---
 
-## 🌐 Test de l'API REST
+## 🌐 Test the REST API
 
-### 1. Lance le serveur
+### 1. Start the server
 
 ```bash
 python backend/api/main.py
 ```
 
-Output :
+Output:
 ```
 INFO:     Uvicorn running on http://0.0.0.0:8000
 ```

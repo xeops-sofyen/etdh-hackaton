@@ -1,7 +1,7 @@
 # Heimdall - AI-Powered Autonomous Drone Mission System
 
 **ETDH Hackathon Paris 2025**
-**Team:** XeOps Security
+**Team:** Sofyen, Dmytro, Titouan
 
 ---
 
@@ -19,7 +19,7 @@ Build a system where operators define high-level missions via natural language, 
 Human Operator
     ↓ (Natural Language)
 ┌─────────────────────┐
-│  Mission Planner    │  (GPT-4: NL → JSON Playbook)
+│  Mission Planner    │  (AI: NL → JSON Playbook)
 └──────────┬──────────┘
            ↓ (Structured Playbook)
 ┌─────────────────────┐
@@ -48,10 +48,10 @@ Human Operator
 etdh-hackaton/
 ├── backend/
 │   ├── playbook_parser/          # Natural language → Playbook JSON
-│   │   ├── nl_parser.py          # GPT-4 integration
+│   │   ├── nl_parser.py          # AI integration
 │   │   └── schema.py             # Playbook JSON schema
 │   │
-│   ├── olympe_translator/        # ⭐ YOUR CORE COMPONENT
+│   ├── olympe_translator/        # ⭐ CORE COMPONENT
 │   │   ├── translator.py         # Playbook → Olympe commands
 │   │   ├── validators.py         # Safety checks
 │   │   └── primitives.py         # Olympe command wrappers
@@ -71,9 +71,7 @@ etdh-hackaton/
 │   └── package.json
 │
 ├── playbooks/                    # Example missions
-│   ├── coastal_patrol.json
-│   ├── infrastructure_recon.json
-│   └── search_and_track.json
+│   └── simple_test.json          # Basic test flight
 │
 ├── tests/
 │   ├── test_translator.py
@@ -136,20 +134,17 @@ Playbooks are JSON definitions of high-level missions:
 
 ```json
 {
-  "mission_id": "coastal_patrol_001",
+  "mission_id": "patrol_mission_001",
   "mission_type": "patrol",
-  "area_of_interest": {
-    "center": [53.5, 8.1],
-    "radius_km": 5
-  },
+  "description": "Autonomous patrol mission",
   "flight_parameters": {
-    "altitude_m": 120,
-    "speed_mps": 10,
-    "pattern": "grid"
+    "altitude_m": 50,
+    "speed_mps": 5,
+    "pattern": "direct"
   },
   "waypoints": [
-    {"lat": 53.5, "lon": 8.0, "alt": 120, "action": "photo"},
-    {"lat": 53.5, "lon": 8.2, "alt": 120, "action": "photo"}
+    {"lat": 48.8788, "lon": 2.3675, "alt": 50, "action": "photo"},
+    {"lat": 48.8790, "lon": 2.3680, "alt": 50, "action": "hover", "hover_duration_sec": 5}
   ],
   "contingencies": {
     "low_battery": "return_to_home",
@@ -163,22 +158,22 @@ Playbooks are JSON definitions of high-level missions:
 
 ## 🧠 Core Component: Olympe Translator
 
-**Your responsibility:** Translate high-level playbook commands into Olympe SDK calls.
+Translates high-level playbook commands into Olympe SDK calls.
 
 ```python
 # Example translation
 playbook = {
     "waypoints": [
-        {"lat": 53.5, "lon": 8.1, "alt": 120, "action": "photo"}
+        {"lat": 48.8788, "lon": 2.3675, "alt": 50, "action": "photo"}
     ]
 }
 
 # Translator converts to:
 drone(TakeOff()).wait()
 drone(moveTo(
-    latitude=53.5,
-    longitude=8.1,
-    altitude=120,
+    latitude=48.8788,
+    longitude=2.3675,
+    altitude=50,
     orientation_mode=0
 )).wait()
 drone(take_photo()).wait()
@@ -189,14 +184,14 @@ drone(Landing()).wait()
 
 ## 🎯 Demo Scenario
 
-**Mission:** "Autonomous coastal infrastructure surveillance"
+**Mission:** "Autonomous patrol mission"
 
-1. Operator types: "Patrol the German North Sea coast and photograph offshore platforms"
-2. GPT-4 generates structured playbook
-3. **Your translator** converts to Olympe commands
+1. Operator defines mission via natural language or playbook JSON
+2. AI generates/validates structured playbook
+3. Translator converts to Olympe commands
 4. Drone executes autonomously
 5. Dashboard shows live telemetry
-6. Photos captured and geotagged
+6. Mission completes successfully
 
 ---
 
@@ -214,7 +209,7 @@ drone(Landing()).wait()
 
 - **Backend:** Python 3.10+, FastAPI
 - **Drone SDK:** Parrot Olympe
-- **AI:** OpenAI GPT-4 (mission planning)
+- **AI:** LLM-based mission planning
 - **Frontend:** Next.js 14, TypeScript, Tailwind CSS
 - **Simulator:** Parrot Sphinx
 - **Deployment:** Docker
@@ -223,8 +218,7 @@ drone(Landing()).wait()
 
 ## 📞 Team
 
-**XeOps Security** - AI-Powered Infrastructure Protection
-Website: https://xeops.ai
+Sofyen, Dmytro, Titouan
 
 ---
 
