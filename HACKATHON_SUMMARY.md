@@ -1,6 +1,6 @@
 # Heimdall - ETDH Hackathon Summary
 
-**Team:** Sofyen, Dmytro, Titouan
+**Team:** Quentin, Dmytro, Titouan, Sofyen
 **Challenge:** UAS-1 - Autonomous Drone Task Execution from Human-Defined Playbooks
 **Repository:** https://github.com/xeops-sofyen/etdh-hackaton
 

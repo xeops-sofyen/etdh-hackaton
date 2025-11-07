@@ -1,0 +1,49 @@
+{
+  "mission_id": "geojson_demo_001",
+  "mission_type": "patrol",
+  "description": "GeoJSON mission with 3 waypoints",
+  "area_of_interest": null,
+  "waypoints": [
+    {
+      "lat": 49.58809075009475,
+      "lon": 22.676025735635818,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.57580919435844,
+      "lon": 22.650759135512743,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.55304323176125,
+      "lon": 22.67371444036104,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    }
+  ],
+  "flight_parameters": {
+    "altitude_m": 100.0,
+    "speed_mps": 10.0,
+    "pattern": "direct",
+    "heading_mode": "auto"
+  },
+  "camera_settings": {
+    "mode": "photo",
+    "resolution": "4K",
+    "gimbal_tilt": -90,
+    "auto_capture_interval_sec": null
+  },
+  "contingencies": {
+    "low_battery": "return_to_home",
+    "gps_loss": "hover_and_alert",
+    "obstacle_detected": "reroute",
+    "communication_loss": "return_to_home"
+  },
+  "auto_execute": false,
+  "max_duration_min": 30.0
+}

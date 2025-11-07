@@ -1,7 +1,7 @@
 # Heimdall - AI-Powered Autonomous Drone Mission System
 
 **ETDH Hackathon Paris 2025**
-**Team:** Sofyen, Dmytro, Titouan
+**Team:** Quentin, Dmytro, Titouan, Sofyen
 
 ---
 
@@ -85,45 +85,49 @@ etdh-hackaton/
 
 ## 🚀 Quick Start
 
-### 1. Setup Backend
+### Option 1: Local Testing (Mac/Windows) - Schema & GeoJSON Only
 
 ```bash
 cd backend
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install pydantic fastapi uvicorn pytest python-dotenv
+
+# Run tests (15 tests - no Olympe required)
+pytest tests/test_schema.py tests/test_geojson_converter.py -v
+
+# Test GeoJSON conversion
+python ../demo_geojson_translation.py
 ```
 
-### 2. Test with Sphinx Simulator
+**Note:** Olympe SDK requires Linux. See [VASTAI_QUICKSTART.md](VASTAI_QUICKSTART.md) for full testing.
+
+### Option 2: Vast.ai Linux Testing (Full Suite with Olympe)
 
 ```bash
-# Start Parrot Sphinx simulator
-sphinx /path/to/drone_model.drone
+# 5-minute setup on Vast.ai
+curl -fsSL https://raw.githubusercontent.com/xeops-sofyen/etdh-hackaton/main/scripts/setup_vastai.sh | bash
 
-# Run translator tests
-pytest tests/
+# All 20 tests will pass! ✅
 ```
 
-### 3. Execute Mission
+See [VASTAI_QUICKSTART.md](VASTAI_QUICKSTART.md) for detailed instructions.
+
+### Option 3: Hackathon Machines (Linux with Physical Drones)
 
 ```bash
-# Start API server
-python backend/api/main.py
+# Clone repository
+git clone https://github.com/xeops-sofyen/etdh-hackaton.git
+cd etdh-hackaton
 
-# Send mission via API
-curl -X POST http://localhost:8000/mission/execute \
-  -H "Content-Type: application/json" \
-  -d '{
-    "human_intent": "Patrol the coastal area near Wilhelmshaven"
-  }'
-```
+# Install dependencies
+pip install parrot-olympe pydantic fastapi uvicorn pytest
 
-### 4. Launch Dashboard
+# Test everything
+pytest tests/ -v
 
-```bash
-cd frontend/dashboard
-npm install
-npm run dev
+# Execute mission with physical drone
+python backend/quickstart.py --playbook playbooks/simple_test.json
 ```
 
 ---
