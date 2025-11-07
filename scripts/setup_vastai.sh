@@ -23,7 +23,11 @@ echo "✅ OS: $DISTRIB_DESCRIPTION"
 PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
 echo "✅ Python: $PYTHON_VERSION"
 
-if [[ $(echo "$PYTHON_VERSION < 3.9" | bc -l) -eq 1 ]]; then
+# Extract major and minor version
+PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d'.' -f1)
+PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d'.' -f2)
+
+if [[ $PYTHON_MAJOR -lt 3 ]] || [[ $PYTHON_MAJOR -eq 3 && $PYTHON_MINOR -lt 9 ]]; then
     echo "❌ Error: Python 3.9+ required (found $PYTHON_VERSION)"
     exit 1
 fi
@@ -39,8 +43,7 @@ apt-get install -y -qq \
     build-essential \
     libgl1 \
     curl \
-    wget \
-    bc
+    wget
 
 # Check if repository already exists
 if [[ -d ~/etdh-hackaton ]]; then
