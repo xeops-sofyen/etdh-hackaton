@@ -2,6 +2,12 @@ import { create } from 'zustand';
 import type { Playbook, DroneState, Approval } from '../types';
 import { mockPlaybooks } from '../utils/mockData';
 
+// Only use mock playbooks if REAL API is disabled
+const USE_REAL_API = import.meta.env.VITE_USE_REAL_API === 'true';
+const initialPlaybooks = USE_REAL_API ? [] : mockPlaybooks;
+
+console.log(`📦 AppStore: ${USE_REAL_API ? 'REAL API mode - no mock playbooks' : `MOCK mode - ${mockPlaybooks.length} mock playbooks loaded`}`);
+
 interface AppStore {
   // Playbook management
   playbooks: Playbook[];
@@ -35,8 +41,8 @@ interface AppStore {
 }
 
 export const useAppStore = create<AppStore>((set) => ({
-  // Initial state - preload with mock data
-  playbooks: mockPlaybooks,
+  // Initial state - preload with mock data ONLY in mock mode
+  playbooks: initialPlaybooks,
   selectedPlaybookId: null,
   drones: new Map(),
   pendingApprovals: [],
