@@ -37,11 +37,16 @@ export function useMissionControl() {
       if (USE_REAL_API) {
         // ====== REAL API ======
 
-        // 1. Execute mission on backend
-        const result = await heimdallAPI.executeMission(playbook, false);
+        // 1. Create playbook on backend (converts GeoJSON to MissionPlaybook)
+        console.log('Creating playbook on backend...');
+        const createResult = await heimdallAPI.createPlaybook(playbook);
+        console.log('Playbook created:', createResult.playbook_id, `(${createResult.waypoint_count} waypoints)`);
+
+        // 2. Execute mission using playbook_id
+        const result = await heimdallAPI.executeMission(createResult.playbook_id, false);
         console.log('Mission started:', result);
 
-        // 2. Connect WebSocket for real-time updates
+        // 3. Connect WebSocket for real-time updates
         const ws = new HeimdallWebSocket(playbook.id);
 
         ws.onMessage((message) => {
@@ -136,8 +141,8 @@ export function useMissionControl() {
     const ws = webSocketsRef.current.get(playbookId);
 
     if (USE_REAL_API) {
-      // Call REST API to abort
-      await heimdallAPI.abortMission();
+      // Call REST API to abort with playbook_id
+      await heimdallAPI.abortMission(playbookId);
     }
 
     if (ws) {

@@ -109,22 +109,70 @@ function backendToDroneState(playbookId: string, backendStatus: any): DroneState
 
 export class HeimdallAPI {
   /**
-   * Execute a mission playbook
+   * Create a playbook from GeoJSON
+   * Returns the playbook_id that can be used for execution
    */
-  async executeMission(playbook: Playbook, simulate: boolean = false): Promise<{
+  async createPlaybook(playbook: Playbook): Promise<{
+    status: string;
+    playbook_id: string;
+    playbook: any;
+    waypoint_count: number;
+  }> {
+    const response = await fetch(`${API_BASE_URL}/playbook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        geojson: playbook.route,
+        mission_id: playbook.id,
+        mission_type: playbook.missionType === 'surveillance' ? 'patrol' : 'delivery',
+        description: playbook.name,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Playbook creation failed');
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Execute a mission playbook
+   *
+   * Accepts either:
+   * - playbook_id: For playbooks created via /playbook endpoint (preferred)
+   * - playbook: Direct playbook object (legacy)
+   */
+  async executeMission(
+    playbookOrId: Playbook | string,
+    simulate: boolean = false
+  ): Promise<{
     status: string;
     mission_id: string;
     message?: string;
   }> {
-    const backendPlaybook = playbookToBackend(playbook);
+    let requestBody: any;
+
+    if (typeof playbookOrId === 'string') {
+      // Use playbook_id (new approach)
+      requestBody = {
+        playbook_id: playbookOrId,
+        simulate,
+      };
+    } else {
+      // Use inline playbook (legacy support)
+      const backendPlaybook = playbookToBackend(playbookOrId);
+      requestBody = {
+        playbook: backendPlaybook,
+        simulate,
+      };
+    }
 
     const response = await fetch(`${API_BASE_URL}/mission/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        playbook: backendPlaybook,
-        simulate,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -156,10 +204,13 @@ export class HeimdallAPI {
 
   /**
    * Abort current mission
+   * Optionally pass playbook_id for tracking
    */
-  async abortMission(): Promise<void> {
+  async abortMission(playbookId?: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/mission/abort`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: playbookId ? JSON.stringify({ playbook_id: playbookId }) : undefined,
     });
 
     if (!response.ok) {

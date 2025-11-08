@@ -12,8 +12,10 @@ import json
 import logging
 from pathlib import Path
 import asyncio
+import uuid
 
 from backend.playbook_parser.schema import MissionPlaybook
+from backend.playbook_parser.geojson_converter import geojson_to_playbook, validate_geojson
 from backend.drone_controller.controller import DroneController
 
 # Setup logging
@@ -42,6 +44,9 @@ app.add_middleware(
 # Global drone controller
 drone_controller = DroneController(simulator_mode=True)
 
+# In-memory playbook storage (use database in production)
+playbook_store: Dict[str, MissionPlaybook] = {}
+
 
 # ============================================================================
 # API MODELS
@@ -49,7 +54,8 @@ drone_controller = DroneController(simulator_mode=True)
 
 class MissionExecuteRequest(BaseModel):
     """Request to execute a mission"""
-    playbook: MissionPlaybook
+    playbook: Optional[MissionPlaybook] = None
+    playbook_id: Optional[str] = None
     simulate: bool = False
 
 
@@ -57,6 +63,19 @@ class NaturalLanguageRequest(BaseModel):
     """Natural language mission command"""
     command: str
     # e.g., "Patrol the coastal area near Wilhelmshaven"
+
+
+class PlaybookCreateRequest(BaseModel):
+    """Request to create a playbook from GeoJSON"""
+    geojson: Dict[str, Any]
+    mission_id: Optional[str] = None
+    mission_type: Optional[str] = "patrol"
+    description: Optional[str] = None
+
+
+class PlaybookIdRequest(BaseModel):
+    """Request with playbook ID"""
+    playbook_id: str
 
 
 # ============================================================================
@@ -79,14 +98,80 @@ async def get_status():
     return drone_controller.get_status()
 
 
+@app.post("/playbook")
+async def create_playbook(request: PlaybookCreateRequest):
+    """
+    Create a playbook from GeoJSON payload
+
+    Accepts a GeoJSON FeatureCollection with Point or LineString features
+    and converts it into a mission playbook.
+
+    Returns the created playbook with a unique playbook_id.
+    """
+    logger.info("Received playbook creation request")
+
+    try:
+        # Validate GeoJSON
+        is_valid, error_msg = validate_geojson(request.geojson)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=f"Invalid GeoJSON: {error_msg}")
+
+        # Generate unique mission ID if not provided
+        mission_id = request.mission_id or f"mission_{uuid.uuid4().hex[:8]}"
+
+        # Convert GeoJSON to playbook
+        playbook = geojson_to_playbook(request.geojson, mission_id=mission_id)
+
+        # Override description if provided
+        if request.description:
+            playbook.description = request.description
+
+        # Override mission type if provided
+        if request.mission_type:
+            playbook.mission_type = request.mission_type
+
+        # Store playbook
+        playbook_store[mission_id] = playbook
+
+        logger.info(f"Created playbook {mission_id} with {len(playbook.waypoints)} waypoints")
+
+        return {
+            "status": "created",
+            "playbook_id": mission_id,
+            "playbook": playbook.model_dump(),
+            "waypoint_count": len(playbook.waypoints)
+        }
+
+    except ValueError as e:
+        logger.error(f"Playbook creation failed: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error creating playbook: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/mission/execute")
 async def execute_mission(request: MissionExecuteRequest, background_tasks: BackgroundTasks):
     """
     Execute a mission playbook
 
-    This endpoint validates and executes a complete mission.
+    Accepts either:
+    - playbook_id: ID of a previously created playbook
+    - playbook: Direct playbook JSON (legacy support)
     """
-    logger.info(f"Received mission: {request.playbook.mission_id}")
+    # Determine which playbook to use
+    if request.playbook_id:
+        # Use playbook from store
+        if request.playbook_id not in playbook_store:
+            raise HTTPException(status_code=404, detail=f"Playbook {request.playbook_id} not found")
+        playbook = playbook_store[request.playbook_id]
+        logger.info(f"Executing stored playbook: {request.playbook_id}")
+    elif request.playbook:
+        # Use playbook from request (legacy support)
+        playbook = request.playbook
+        logger.info(f"Executing inline playbook: {playbook.mission_id}")
+    else:
+        raise HTTPException(status_code=400, detail="Either playbook_id or playbook must be provided")
 
     try:
         # Execute mission in background (so API returns immediately)
@@ -94,19 +179,19 @@ async def execute_mission(request: MissionExecuteRequest, background_tasks: Back
             # Simulation mode: just validate, don't execute
             from backend.olympe_translator.translator import PlaybookValidator
             validator = PlaybookValidator()
-            is_valid, error = validator.validate(request.playbook)
+            is_valid, error = validator.validate(playbook)
 
             if not is_valid:
                 raise HTTPException(status_code=400, detail=error)
 
             return {
                 "status": "simulation_success",
-                "mission_id": request.playbook.mission_id,
+                "mission_id": playbook.mission_id,
                 "message": "Playbook is valid and ready for execution"
             }
         else:
             # Real execution
-            result = drone_controller.execute_mission(request.playbook)
+            result = drone_controller.execute_mission(playbook)
             return result
 
     except Exception as e:
@@ -115,9 +200,17 @@ async def execute_mission(request: MissionExecuteRequest, background_tasks: Back
 
 
 @app.post("/mission/abort")
-async def abort_mission():
-    """Emergency abort current mission"""
-    logger.warning("ABORT requested via API")
+async def abort_mission(request: Optional[PlaybookIdRequest] = None):
+    """
+    Emergency abort current mission
+
+    Optional: Can specify playbook_id for logging/tracking purposes
+    """
+    if request and request.playbook_id:
+        logger.warning(f"ABORT requested via API for playbook: {request.playbook_id}")
+    else:
+        logger.warning("ABORT requested via API")
+
     success = drone_controller.abort_mission()
 
     if success:
