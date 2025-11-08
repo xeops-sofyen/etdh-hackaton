@@ -16,6 +16,7 @@ const WS_BASE_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
 
 /**
  * Convert frontend Playbook (GeoJSON) to backend MissionPlaybook
+ * Uses the complete Pydantic schema from backend/playbook_parser/schema.py
  */
 function playbookToBackend(playbook: Playbook) {
   // Extract waypoints from GeoJSON
@@ -26,24 +27,54 @@ function playbookToBackend(playbook: Playbook) {
       return {
         lat: coords[1],
         lon: coords[0],
-        alt: 100, // Default altitude
+        alt: 120, // Default altitude in meters
         action: 'hover', // Default action
+        hover_duration_sec: 5,
       };
     });
 
+  // Calculate center point for area_of_interest
+  const centerLat = points.reduce((sum, p) => sum + p.lat, 0) / points.length;
+  const centerLon = points.reduce((sum, p) => sum + p.lon, 0) / points.length;
+
+  // Map frontend missionType to backend mission_type
+  const missionTypeMap = {
+    surveillance: 'patrol' as const,
+    delivery: 'delivery' as const,
+  };
+
   return {
     mission_id: playbook.id,
+    mission_type: missionTypeMap[playbook.missionType] || 'patrol',
     description: playbook.name,
-    waypoints: points,
-    alt_m: 100,
-    speed_mps: 15,
-    duration_min: 30,
-    actions: [],
-    contingencies: {
-      low_battery: 'return_to_base',
-      gps_loss: 'hover',
-      obstacle: 'avoid',
+    area_of_interest: {
+      center: {
+        lat: centerLat,
+        lon: centerLon,
+      },
+      radius_km: 5,
     },
+    waypoints: points,
+    flight_parameters: {
+      altitude_m: 120,
+      speed_mps: 10,
+      pattern: 'direct' as const,
+      heading_mode: 'auto' as const,
+    },
+    camera_settings: {
+      mode: 'photo' as const,
+      resolution: '4K',
+      gimbal_tilt: -45,
+      auto_capture_interval_sec: null,
+    },
+    contingencies: {
+      low_battery: 'return_to_home' as const,
+      gps_loss: 'hover_and_alert' as const,
+      obstacle_detected: 'reroute' as const,
+      communication_loss: 'return_to_home' as const,
+    },
+    auto_execute: true,
+    max_duration_min: 30,
   };
 }
 
