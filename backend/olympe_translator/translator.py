@@ -80,8 +80,8 @@ class OlympeTranslator:
         logger.info(f"   Description: {playbook.description}")
 
         try:
-            # Pre-flight setup disabled - using default drone settings
-            # self._setup_flight_parameters(playbook)
+            # 1. Pre-flight setup
+            # self._setup_flight_parameters(playbook) # TODO disabled until fix is found
             # Camera configuration disabled - focusing on GPS navigation only
             # self._configure_camera(playbook.camera_settings)
 
