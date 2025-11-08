@@ -30,6 +30,7 @@ services:
         # Build-time args for Vite (these get baked into the build)
         - VITE_API_URL=http://localhost:8000
         - VITE_WS_URL=ws://localhost:8000
+        - VITE_USE_REAL_API=true
     container_name: heimdall-frontend
     ports:
       - "4173:4173"

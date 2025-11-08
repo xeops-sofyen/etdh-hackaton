@@ -6,6 +6,7 @@ WORKDIR /app
 # Build arguments for Vite environment variables
 ARG VITE_API_URL=http://localhost:8000
 ARG VITE_WS_URL=ws://localhost:8000
+ARG VITE_USE_REAL_API=true
 
 # Copy package files
 COPY package.json bun.lock* yarn.lock* package-lock.json* ./
@@ -25,6 +26,7 @@ COPY . .
 # Set environment variables for build
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_WS_URL=$VITE_WS_URL
+ENV VITE_USE_REAL_API=$VITE_USE_REAL_API
 
 # Build the application
 RUN npm run build
