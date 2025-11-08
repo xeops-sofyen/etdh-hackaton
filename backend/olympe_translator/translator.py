@@ -189,17 +189,24 @@ class OlympeTranslator:
         """
         # Log the moveTo params
         print(f"moveTo params: lat={waypoint.lat}, lon={waypoint.lon}, alt={waypoint.alt}, orientation_mode=0, heading=0.0")
-        # Navigate to waypoint
-        assert self.drone(moveTo(
-            latitude=waypoint.lat,
-            longitude=waypoint.lon,
-            altitude=waypoint.alt,
-            orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
-            heading=0.0, #mandatory parameter
-            # max_horizontal_speed=10.0,
-            # max_vertical_speed=2.0,
-            # max_yaw_rotation_speed=45.0
-        )).wait().success()
+
+
+        try:
+            result = self.drone(moveTo(
+                latitude=waypoint.lat,
+                longitude=waypoint.lon,
+                altitude=waypoint.alt,
+                orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
+                heading=0.0, #mandatory parameter
+                # max_horizontal_speed=10.0,
+                # max_vertical_speed=2.0,
+                # max_yaw_rotation_speed=45.0
+            )).wait()
+            print(f"Result: {result}")
+        except Exception as e:
+            print("Error in moveTo")
+            print(f"Error: {e}")
+            raise e
 
         logger.info(f"   ✅ Reached waypoint: ({waypoint.lat}, {waypoint.lon})")
 
