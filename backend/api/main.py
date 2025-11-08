@@ -4,13 +4,14 @@ FastAPI Server for Heimdall Mission Control
 Exposes REST API for mission execution
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import json
 import logging
 from pathlib import Path
+import asyncio
 
 from backend.playbook_parser.schema import MissionPlaybook
 from backend.drone_controller.controller import DroneController
@@ -191,6 +192,90 @@ async def parse_natural_language(request: NaturalLanguageRequest):
             status_code=400,
             detail="Could not parse command. Try: 'patrol coastal area' or 'simple test flight'"
         )
+
+
+# ============================================================================
+# WEBSOCKET FOR REAL-TIME UPDATES
+# ============================================================================
+
+# Store active WebSocket connections
+active_connections: Dict[str, list[WebSocket]] = {}
+
+
+@app.websocket("/ws/mission/{mission_id}")
+async def websocket_mission_updates(websocket: WebSocket, mission_id: str):
+    """
+    WebSocket endpoint for real-time mission updates
+
+    Streams:
+    - position_update: Drone position, battery, speed
+    - waypoint_reached: When drone reaches a waypoint
+    - mission_complete: When mission finishes
+    - error: When errors occur
+    """
+    await websocket.accept()
+
+    # Register connection
+    if mission_id not in active_connections:
+        active_connections[mission_id] = []
+    active_connections[mission_id].append(websocket)
+
+    logger.info(f"WebSocket connected for mission {mission_id}")
+
+    try:
+        # Send initial status
+        status = drone_controller.get_status()
+        await websocket.send_json({
+            "type": "position_update",
+            "data": status
+        })
+
+        # Keep connection alive and stream updates
+        while True:
+            # Get latest status every second
+            await asyncio.sleep(1)
+            status = drone_controller.get_status()
+
+            await websocket.send_json({
+                "type": "position_update",
+                "data": status
+            })
+
+            # Check if mission is complete
+            if status.get("status") == "completed":
+                await websocket.send_json({
+                    "type": "mission_complete",
+                    "data": status
+                })
+                break
+
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected for mission {mission_id}")
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "error": str(e)
+            })
+        except:
+            pass
+    finally:
+        # Cleanup connection
+        if mission_id in active_connections:
+            active_connections[mission_id].remove(websocket)
+            if not active_connections[mission_id]:
+                del active_connections[mission_id]
+
+
+async def broadcast_to_mission(mission_id: str, message: dict):
+    """Helper to broadcast updates to all connected clients for a mission"""
+    if mission_id in active_connections:
+        for connection in active_connections[mission_id]:
+            try:
+                await connection.send_json(message)
+            except:
+                pass
 
 
 # ============================================================================
