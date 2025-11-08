@@ -80,12 +80,12 @@ class OlympeTranslator:
         logger.info(f"   Description: {playbook.description}")
 
         try:
-            # 1. Pre-flight setup
-            self._setup_flight_parameters(playbook)
+            # Pre-flight setup disabled - using default drone settings
+            # self._setup_flight_parameters(playbook)
             # Camera configuration disabled - focusing on GPS navigation only
             # self._configure_camera(playbook.camera_settings)
 
-            # 2. Takeoff
+            # 1. Takeoff
             logger.info("📍 Taking off...")
             self._execute_takeoff(playbook.flight_parameters.altitude_m)
 
@@ -127,8 +127,12 @@ class OlympeTranslator:
         else:
             max_tilt = 10
 
-        assert self.drone(MaxTilt(max_tilt)).wait().success()
-        logger.info(f"⚙️  Max tilt set to {max_tilt}°")
+        logger.info(f"⚙️  Setting max tilt to {max_tilt}°...")
+        result = self.drone(MaxTilt(max_tilt)).wait(_timeout=5)
+        if not result.success():
+            logger.warning(f"⚠️  Max tilt configuration failed, using default drone settings")
+        else:
+            logger.info(f"✅ Max tilt set to {max_tilt}°")
 
     def _configure_camera(self, settings: CameraSettings):
         """Configure camera settings"""
