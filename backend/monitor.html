@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heimdall Backend Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: #0a0e14;
+            color: #e5e7eb;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(180deg, #0f1419 0%, #0a0e14 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #1f2937;
+        }
+
+        h1 {
+            color: #10b981;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, #0f1419 0%, #0a0e14 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #1f2937;
+        }
+
+        .panel h2 {
+            color: #10b981;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1f2937;
+            font-weight: 600;
+        }
+
+        .log-container {
+            background: #0a0e14;
+            padding: 15px;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 13px;
+            border: 1px solid #1f2937;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+
+        .log-entry.info {
+            border-left-color: #10b981;
+            color: #34d399;
+        }
+
+        .log-entry.request {
+            border-left-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .log-entry.mission {
+            border-left-color: #f59e0b;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .log-entry.error {
+            border-left-color: #ef4444;
+            color: #f87171;
+        }
+
+        .log-entry.websocket {
+            border-left-color: #8b5cf6;
+            color: #a78bfa;
+        }
+
+        .timestamp {
+            color: #6b7280;
+            margin-right: 10px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #0a0e14;
+            border-radius: 4px;
+            border-left: 3px solid #10b981;
+        }
+
+        .metric-label {
+            color: #9ca3af;
+        }
+
+        .metric-value {
+            color: #10b981;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .mission-card {
+            background: #0a0e14;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .mission-id {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .mission-status {
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .mission-status.active {
+            background: #10b981;
+            color: #0a0e14;
+        }
+
+        .mission-status.completed {
+            background: #6b7280;
+            color: #0a0e14;
+        }
+
+        .mission-details {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .no-data {
+            color: #4b5563;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0e14;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #0a0e14;
+            border: 1px solid #34d399;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn.secondary {
+            background: #1f2937;
+            color: #10b981;
+            border: 1px solid #374151;
+        }
+
+        .btn.secondary:hover {
+            background: #374151;
+        }
+
+        .controls {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚁 Heimdall Backend Monitor</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot" id="backendStatus"></div>
+                    <span>Backend: <span id="backendStatusText">Checking...</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot offline"></div>
+                    <span>Frontend: <span id="frontendStatus">http://localhost:5173</span></span>
+                </div>
+                <div class="status-item">
+                    <span>Uptime: <span id="uptime">0s</span></span>
+                </div>
+                <div class="status-item">
+                    <span>Last Update: <span id="lastUpdate">Never</span></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="panel">
+                <h2>📊 Metrics</h2>
+                <div class="metric">
+                    <span class="metric-label">Total Requests</span>
+                    <span class="metric-value" id="totalRequests">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Missions Received</span>
+                    <span class="metric-value" id="totalMissions">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">WebSocket Connections</span>
+                    <span class="metric-value" id="totalWebsockets">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Active Mission</span>
+                    <span class="metric-value" id="activeMission">None</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🎯 Latest Missions</h2>
+                <div id="missionsContainer" style="max-height: 300px; overflow-y: auto;">
+                    <div class="no-data">No missions yet</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel full-width">
+            <h2>📝 Live Logs</h2>
+            <div class="controls">
+                <button class="btn" onclick="clearLogs()">Clear Logs</button>
+                <button class="btn secondary" onclick="toggleAutoScroll()">Auto-scroll: <span id="autoScrollStatus">ON</span></button>
+                <button class="btn secondary" onclick="location.reload()">Refresh</button>
+            </div>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry info">
+                    <span class="timestamp">[Waiting for activity...]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let totalRequests = 0;
+        let totalMissions = 0;
+        let totalWebsockets = 0;
+        let missions = [];
+        let autoScroll = true;
+        const startTime = Date.now();
+
+        // Update uptime
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('uptime').textContent =
+                hours > 0 ? `${hours}h ${minutes}m ${seconds}s` :
+                minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+        }, 1000);
+
+        // Check backend status
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch('http://localhost:8000/');
+                const data = await response.json();
+                document.getElementById('backendStatus').className = 'status-dot online';
+                document.getElementById('backendStatusText').textContent = 'Online - ' + data.mode;
+                return true;
+            } catch (error) {
+                document.getElementById('backendStatus').className = 'status-dot offline';
+                document.getElementById('backendStatusText').textContent = 'Offline';
+                return false;
+            }
+        }
+
+        // Poll backend for metrics
+        async function pollBackend() {
+            try {
+                const response = await fetch('http://localhost:8000/status');
+                const data = await response.json();
+
+                // Update active mission
+                if (data.mission_id) {
+                    document.getElementById('activeMission').textContent = data.mission_id;
+                } else {
+                    document.getElementById('activeMission').textContent = 'None';
+                }
+
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            } catch (error) {
+                // Ignore errors
+            }
+        }
+
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span>${message}`;
+
+            logContainer.appendChild(entry);
+
+            if (autoScroll) {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            // Keep only last 100 entries
+            while (logContainer.children.length > 100) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        // Simulate log parsing (in real implementation, this would read from backend)
+        function simulateLogs() {
+            // This is a demo - in production you'd fetch logs from backend
+            addLog('Backend started on http://0.0.0.0:8000', 'info');
+            addLog('Waiting for frontend requests...', 'info');
+        }
+
+        // Add mission card
+        function addMission(mission) {
+            const container = document.getElementById('missionsContainer');
+
+            // Remove "no data" message
+            if (container.querySelector('.no-data')) {
+                container.innerHTML = '';
+            }
+
+            const card = document.createElement('div');
+            card.className = 'mission-card';
+            card.innerHTML = `
+                <div class="mission-header">
+                    <span class="mission-id">${mission.id}</span>
+                    <span class="mission-status ${mission.status}">${mission.status.toUpperCase()}</span>
+                </div>
+                <div class="mission-details">
+                    Type: ${mission.type} | Waypoints: ${mission.waypoints} | ${mission.description}
+                </div>
+            `;
+
+            container.insertBefore(card, container.firstChild);
+
+            // Keep only last 5 missions
+            while (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Clear logs
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('Logs cleared', 'info');
+        }
+
+        // Toggle auto-scroll
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            document.getElementById('autoScrollStatus').textContent = autoScroll ? 'ON' : 'OFF';
+        }
+
+        // Demo: Simulate receiving a request
+        function simulateRequest() {
+            totalRequests++;
+            document.getElementById('totalRequests').textContent = totalRequests;
+            addLog(`HTTP ${['GET', 'POST'][Math.floor(Math.random() * 2)]} ${['/status', '/mission/execute', '/'][Math.floor(Math.random() * 3)]} - 200 OK`, 'request');
+        }
+
+        // Demo: Simulate receiving a mission
+        function simulateMission() {
+            totalMissions++;
+            document.getElementById('totalMissions').textContent = totalMissions;
+
+            const mission = {
+                id: `mission-${Date.now()}`,
+                type: ['patrol', 'surveillance', 'delivery'][Math.floor(Math.random() * 3)],
+                waypoints: Math.floor(Math.random() * 5) + 2,
+                description: 'Mission from frontend',
+                status: 'active'
+            };
+
+            addLog(`🚁 Received mission: ${mission.id}`, 'mission');
+            addLog(`   Type: ${mission.type}`, 'mission');
+            addLog(`   Waypoints: ${mission.waypoints}`, 'mission');
+            addLog(`   Mode: EXECUTION (Demo - no real drone)`, 'mission');
+
+            addMission(mission);
+        }
+
+        // Demo: Simulate WebSocket connection
+        function simulateWebSocket() {
+            totalWebsockets++;
+            document.getElementById('totalWebsockets').textContent = totalWebsockets;
+            addLog('✅ WebSocket connected for mission mission-' + Date.now(), 'websocket');
+        }
+
+        // Initialize
+        checkBackendStatus();
+        simulateLogs();
+
+        // Poll backend every 2 seconds
+        setInterval(checkBackendStatus, 2000);
+        setInterval(pollBackend, 2000);
+
+        // Instructions
+        setTimeout(() => {
+            addLog('='.repeat(60), 'info');
+            addLog('📊 MONITOR READY', 'info');
+            addLog('This page will show real-time backend activity when you:', 'info');
+            addLog('1. Create a mission in the frontend (http://localhost:5173)', 'info');
+            addLog('2. The backend receives the request', 'info');
+            addLog('3. WebSocket connections are established', 'info');
+            addLog('='.repeat(60), 'info');
+            addLog('Note: For now, use this with tail -f /tmp/backend_test.log for full logs', 'info');
+        }, 1000);
+
+        // Keyboard shortcuts
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'r') simulateRequest();
+            if (e.key === 'm') simulateMission();
+            if (e.key === 'w') simulateWebSocket();
+            if (e.key === 'c') clearLogs();
+        });
+    </script>
+</body>
+</html>
