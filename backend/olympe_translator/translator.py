@@ -193,9 +193,9 @@ class OlympeTranslator:
             altitude=waypoint.alt,
             orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
             heading=0.0, #mandatory parameter
-            max_horizontal_speed=10.0,
-            max_vertical_speed=2.0,
-            max_yaw_rotation_speed=45.0
+            # max_horizontal_speed=10.0,
+            # max_vertical_speed=2.0,
+            # max_yaw_rotation_speed=45.0
         )).wait().success()
 
         logger.info(f"   ✅ Reached waypoint: ({waypoint.lat}, {waypoint.lon})")
