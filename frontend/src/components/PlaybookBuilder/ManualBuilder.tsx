@@ -91,6 +91,9 @@ export const ManualBuilder = () => {
       features,
     };
 
+    // Estimate duration based on waypoints (rough calculation: 60 seconds per waypoint)
+    const estimatedDuration = waypoints.length * 60;
+
     const newPlaybook = {
       id: `playbook-${Date.now()}`,
       name: playbookName,
@@ -98,6 +101,7 @@ export const ManualBuilder = () => {
       route,
       createdAt: new Date(),
       status: 'planned' as const,
+      estimatedDuration,
     };
 
     addPlaybook(newPlaybook);
@@ -113,8 +117,8 @@ export const ManualBuilder = () => {
           className={styles.map}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
           <MapClickHandler onMapClick={handleMapClick} />
 
@@ -125,7 +129,7 @@ export const ManualBuilder = () => {
           {waypoints.length > 1 && (
             <Polyline
               positions={waypoints.map((wp) => [wp.lat, wp.lng] as [number, number])}
-              color="#2563eb"
+              color="#10b981"
               weight={3}
               dashArray="10, 5"
             />

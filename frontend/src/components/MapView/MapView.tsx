@@ -128,10 +128,18 @@ export const MapView = ({ route, playbookId, droneState, center = [49.58, 22.67]
         ref={mapRef}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
-        <GeoJSON key={playbookId} data={route} />
+        <GeoJSON
+          key={playbookId}
+          data={route}
+          style={() => ({
+            color: '#10b981',
+            weight: 3,
+            opacity: 0.8,
+          })}
+        />
         <FitBounds route={route} droneState={droneState} />
 
         {/* Render waypoint markers */}
@@ -148,10 +156,10 @@ export const MapView = ({ route, playbookId, droneState, center = [49.58, 22.67]
                 center={[coords[1], coords[0]]}
                 radius={8}
                 pathOptions={{
-                  color: isCurrentWaypoint ? '#fbbf24' : isCompletedWaypoint ? '#10b981' : '#3b82f6',
-                  fillColor: isCurrentWaypoint ? '#fbbf24' : isCompletedWaypoint ? '#10b981' : '#3b82f6',
-                  fillOpacity: 0.8,
-                  weight: 2,
+                  color: isCurrentWaypoint ? '#fbbf24' : isCompletedWaypoint ? '#34d399' : '#60a5fa',
+                  fillColor: isCurrentWaypoint ? '#fbbf24' : isCompletedWaypoint ? '#34d399' : '#60a5fa',
+                  fillOpacity: 0.9,
+                  weight: 3,
                 }}
               >
               </CircleMarker>
