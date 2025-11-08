@@ -1,5 +1,6 @@
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { MainView } from './components/MainView/MainView';
+import { PlaybookBuilderModal } from './components/PlaybookBuilder/PlaybookBuilderModal';
 import styles from './App.module.css';
 
 function App() {
@@ -7,6 +8,7 @@ function App() {
     <div className={styles.app}>
       <Sidebar />
       <MainView />
+      <PlaybookBuilderModal />
     </div>
   );
 }
