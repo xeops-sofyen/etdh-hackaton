@@ -82,7 +82,8 @@ class OlympeTranslator:
         try:
             # 1. Pre-flight setup
             self._setup_flight_parameters(playbook)
-            self._configure_camera(playbook.camera_settings)
+            # Camera configuration disabled - focusing on GPS navigation only
+            # self._configure_camera(playbook.camera_settings)
 
             # 2. Takeoff
             logger.info("📍 Taking off...")
@@ -195,9 +196,9 @@ class OlympeTranslator:
 
         logger.info(f"   ✅ Reached waypoint: ({waypoint.lat}, {waypoint.lon})")
 
-        # Execute action at waypoint
-        if waypoint.action:
-            self._execute_action(waypoint)
+        # Actions at waypoints disabled - focusing on GPS navigation only
+        # if waypoint.action:
+        #     self._execute_action(waypoint)
 
     def _execute_action(self, waypoint: Waypoint):
         """Execute action at waypoint (photo, video, hover, etc.)"""
