@@ -106,12 +106,14 @@ class OlympeTranslator:
             }
 
         except Exception as e:
-            logger.error(f"❌ Mission failed: {e}")
+            error_msg = str(e) if str(e) else "Unknown error (timeout or assertion failure)"
+            logger.error(f"❌ Mission failed: {error_msg}")
+            logger.exception("Full exception traceback:")
             self._emergency_land()
             return {
                 "status": "failed",
                 "mission_id": playbook.mission_id,
-                "error": str(e)
+                "error": error_msg
             }
 
     def _setup_flight_parameters(self, playbook: MissionPlaybook):
@@ -137,10 +139,16 @@ class OlympeTranslator:
         else:
             mode = set_camera_mode.mode.photo  # default
 
-        assert self.drone(set_camera_mode(cam_id=0, value=mode)).wait().success()
+        logger.info(f"📷 Setting camera mode to {settings.mode}...")
+        result = self.drone(set_camera_mode(cam_id=0, value=mode)).wait(_timeout=5)
+        if not result.success():
+            logger.warning(f"⚠️  Camera mode configuration failed, continuing anyway...")
+        else:
+            logger.info(f"✅ Camera mode set to {settings.mode}")
 
         # Set gimbal tilt
-        assert self.drone(set_target(
+        logger.info(f"📷 Setting gimbal tilt to {settings.gimbal_tilt}°...")
+        result = self.drone(set_target(
             gimbal_id=0,
             control_mode="position",
             yaw_frame_of_reference="none",
@@ -149,9 +157,14 @@ class OlympeTranslator:
             pitch=settings.gimbal_tilt,
             roll_frame_of_reference="none",
             roll=0.0
-        )).wait().success()
+        )).wait(_timeout=5)
 
-        logger.info(f"📷 Camera configured: {settings.mode}, gimbal={settings.gimbal_tilt}°")
+        if not result.success():
+            logger.warning(f"⚠️  Gimbal configuration failed, continuing anyway...")
+        else:
+            logger.info(f"✅ Gimbal tilt set to {settings.gimbal_tilt}°")
+
+        logger.info(f"📷 Camera configuration complete")
 
     def _execute_takeoff(self, target_altitude: float):
         """Execute takeoff to specified altitude"""
