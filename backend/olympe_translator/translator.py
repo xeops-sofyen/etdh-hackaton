@@ -107,6 +107,7 @@ class OlympeTranslator:
             }
 
         except Exception as e:
+            print(f"Error: {e}")
             error_msg = str(e) if str(e) else "Unknown error (timeout or assertion failure)"
             logger.error(f"❌ Mission failed: {error_msg}")
             logger.exception("Full exception traceback:")
@@ -186,6 +187,8 @@ class OlympeTranslator:
         This is the core translation logic:
         Waypoint JSON → Olympe moveTo() command
         """
+        # Log the moveTo params
+        print(f"moveTo params: lat={waypoint.lat}, lon={waypoint.lon}, alt={waypoint.alt}, orientation_mode=0, heading=0.0")
         # Navigate to waypoint
         assert self.drone(moveTo(
             latitude=waypoint.lat,
