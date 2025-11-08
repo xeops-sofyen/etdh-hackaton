@@ -103,7 +103,16 @@ function backendToDroneState(playbookId: string, backendStatus: any): DroneState
   };
 }
 
-function waypointToFeature(waypoint: any, index: number): Feature<Point> | null {
+type BackendWaypoint = {
+  lat?: number;
+  lon?: number;
+  alt?: number;
+  altitude?: number;
+  action?: string;
+  hover_duration_sec?: number;
+};
+
+function waypointToFeature(waypoint: BackendWaypoint, index: number): Feature<Point> | null {
   const lat = Number(waypoint?.lat);
   const lon = Number(waypoint?.lon);
 
@@ -128,20 +137,27 @@ function waypointToFeature(waypoint: any, index: number): Feature<Point> | null 
 
 function backendMissionToPlaybook(data: any): Playbook {
   const missionId = data.mission_id ?? `playbook-${Date.now()}`;
-  const features = (Array.isArray(data.waypoints) ? data.waypoints : [])
-    .map((waypoint, index) => waypointToFeature(waypoint, index))
+  const waypointList: BackendWaypoint[] = Array.isArray(data.waypoints)
+    ? data.waypoints.filter(
+        (wp: unknown): wp is BackendWaypoint => typeof wp === 'object' && wp !== null
+      )
+    : [];
+  const features = waypointList
+    .map((waypoint: BackendWaypoint, index: number) => waypointToFeature(waypoint, index))
     .filter((feature): feature is Feature<Point> => feature !== null);
 
   const missionType = data.mission_type === 'delivery' ? 'delivery' : 'surveillance';
+
+  const route: FeatureCollection = {
+    type: 'FeatureCollection',
+    features,
+  };
 
   return {
     id: missionId,
     name: data.description ?? missionId,
     missionType,
-    route: {
-      type: 'FeatureCollection',
-      features,
-    },
+    route,
     createdAt: new Date(data.created_at ?? Date.now()),
     status: 'planned',
     estimatedDuration:
