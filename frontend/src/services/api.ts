@@ -3,8 +3,8 @@
  * Replaces mock services with real HTTP + WebSocket connections
  */
 
-import type { Playbook, DroneState, Approval } from '../types';
-import type { FeatureCollection } from 'geojson';
+import type { Playbook, DroneState } from '../types';
+import type { Point } from 'geojson';
 
 // Backend configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -21,7 +21,7 @@ const WS_BASE_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
 function playbookToBackend(playbook: Playbook) {
   // Extract waypoints from GeoJSON
   const points = playbook.route.features
-    .filter((f) => f.geometry.type === 'Point')
+    .filter((f): f is typeof f & { geometry: Point } => f.geometry.type === 'Point')
     .map((f) => {
       const coords = f.geometry.coordinates;
       return {
@@ -234,8 +234,11 @@ export class HeimdallWebSocket {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 2000;
+  private playbookId: string;
 
-  constructor(private playbookId: string) {}
+  constructor(playbookId: string) {
+    this.playbookId = playbookId;
+  }
 
   connect() {
     try {
