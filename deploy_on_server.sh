@@ -176,15 +176,23 @@ cd ${APP_DIR}/frontend
 # Get server IP
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
-# Create production environment file
+# Create environment files for both dev and production
+cat > .env <<EOF
+# Heimdall Frontend Configuration - Development
+VITE_API_URL=http://${SERVER_IP}:8000
+VITE_WS_URL=ws://${SERVER_IP}:8000
+VITE_USE_REAL_API=true
+EOF
+
 cat > .env.production <<EOF
-# Heimdall Frontend Configuration
+# Heimdall Frontend Configuration - Production
 VITE_API_URL=http://${SERVER_IP}:8000
 VITE_WS_URL=ws://${SERVER_IP}:8000
 VITE_USE_REAL_API=true
 EOF
 
 echo "Frontend will connect to: http://${SERVER_IP}:8000"
+echo "✅ Real API mode enabled (VITE_USE_REAL_API=true)"
 
 # Install npm dependencies
 if [ -f "package.json" ]; then
