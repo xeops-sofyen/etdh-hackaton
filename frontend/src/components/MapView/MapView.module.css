@@ -1,0 +1,10 @@
+.mapView {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.leafletContainer {
+  width: 100%;
+  height: 100%;
+}

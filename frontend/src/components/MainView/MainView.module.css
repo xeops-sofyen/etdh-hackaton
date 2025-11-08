@@ -1,0 +1,96 @@
+.mainView {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.mapContainer {
+  flex: 1;
+  position: relative;
+  background-color: #e5e5e5;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  font-size: 16px;
+}
+
+.controlsPanel {
+  padding: 16px;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.telemetryPanel {
+  padding: 16px;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+  display: flex;
+  gap: 24px;
+}
+
+.telemetryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.telemetryLabel {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.telemetryValue {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primaryButton {
+  background-color: #0d7dd6;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #0969ba;
+}
+
+.dangerButton {
+  background-color: #cf222e;
+  color: white;
+}
+
+.dangerButton:hover {
+  background-color: #a40e26;
+}
+
+.secondaryButton {
+  background-color: #f5f5f5;
+  color: #1e1e1e;
+  border: 1px solid #ddd;
+}
+
+.secondaryButton:hover {
+  background-color: #e5e5e5;
+}
