@@ -4,8 +4,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: heimdall-backend
-    ports:
-      - "8000:8000"
+    # Use host network to access simulator running on host machine
+    # Note: On macOS/Windows Docker Desktop, this uses the VM's network
+    # For physical drone access, ensure simulator/drone is accessible on host network
+    network_mode: host
     volumes:
       # Mount playbooks directory for easy updates
       - ./playbooks:/app/playbooks

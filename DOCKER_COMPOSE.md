@@ -19,10 +19,13 @@ This will:
 ## Services
 
 ### Backend (`heimdall-backend`)
-- **Port**: 8000
+- **Port**: 8000 (on host network)
+- **Network Mode**: `host` - allows access to simulator/drone on host machine
 - **Health Check**: `http://localhost:8000/`
 - **Volumes**: 
   - `./playbooks:/app/playbooks` (playbook files)
+
+**Note**: The backend uses `network_mode: host` to access the Parrot Sphinx simulator or physical drone running on the host machine. This allows the container to connect to services on `10.202.0.1` (default simulator IP) or other host network addresses.
 
 ### Frontend (`heimdall-frontend`)
 - **Port**: 4173
@@ -83,15 +86,34 @@ Or pass them directly:
 VITE_API_URL=http://custom-backend:8000 docker-compose up
 ```
 
+## Network Configuration
+
+### Host Network Mode
+
+The backend service uses `network_mode: host` to access the Parrot Sphinx simulator or physical drone on the host network. This means:
+
+- ✅ Backend can connect to simulator at `10.202.0.1` (default)
+- ✅ Backend can access any service on the host network
+- ✅ No port mapping needed (backend listens directly on host's port 8000)
+- ⚠️ On macOS/Windows Docker Desktop: Uses the VM's network, not the physical host network
+
+**For Linux**: Full host network access works perfectly.
+
+**For macOS/Windows**: If you need to access a simulator on the physical host, you may need to:
+1. Run the simulator inside the Docker VM, or
+2. Use Docker Desktop's host networking features, or
+3. Run backend directly on host (outside Docker) for simulator access
+
 ## Troubleshooting
 
 ### Port already in use
-If ports 8000 or 4173 are already in use, modify the port mappings in `docker-compose.yml`:
+If port 8000 is already in use, stop the conflicting service or change the backend port in `backend/api/main.py`:
 
-```yaml
-ports:
-  - "8001:8000"  # Use 8001 instead of 8000
+```python
+uvicorn.run(app, host="0.0.0.0", port=8001)  # Change port
 ```
+
+Then update frontend `VITE_API_URL` to match.
 
 ### Frontend can't connect to backend
 - Ensure backend is healthy: `curl http://localhost:8000/`
