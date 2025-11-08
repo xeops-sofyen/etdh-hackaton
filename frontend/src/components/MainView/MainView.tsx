@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { MapView } from '../MapView/MapView';
-import { MockDroneWebSocket } from '../../services/mockWebSocket';
+import { useMissionControl } from '../../hooks/useMissionControl';
 import { ApprovalQueue } from '../ApprovalQueue/ApprovalQueue';
 import styles from './MainView.module.css';
 
@@ -10,17 +10,17 @@ export const MainView = () => {
     selectedPlaybookId,
     playbooks,
     drones,
-    updateDrone,
-    addApproval,
-    startMission,
-    pauseMission,
-    abortMission,
-    updatePlaybookStatus,
-    approvalDecisions,
-    clearApprovalDecision,
   } = useAppStore();
 
-  const webSocketRef = useRef<MockDroneWebSocket | null>(null);
+  // Use mission control hook for real/mock API
+  const {
+    startMission,
+    pauseMission,
+    resumeMission,
+    abortMission,
+    isRealAPI,
+  } = useMissionControl();
+
   const [elapsedTime, setElapsedTime] = useState(0);
 
   const selectedPlaybook = playbooks.find((p) => p.id === selectedPlaybookId);
@@ -46,100 +46,43 @@ export const MainView = () => {
     }
   }, [selectedPlaybook?.status, selectedPlaybook?.startedAt]);
 
-  // Handle approval decisions
-  useEffect(() => {
-    approvalDecisions.forEach((decision, approvalId) => {
-      if (decision.playbookId === selectedPlaybookId && webSocketRef.current) {
-        if (decision.decision === 'approved') {
-          // Resume mission
-          webSocketRef.current.resume();
-        } else if (decision.decision === 'denied') {
-          // Abort mission
-          webSocketRef.current.abort();
-          abortMission(decision.playbookId);
-        }
-        // Clear the decision after handling
-        clearApprovalDecision(approvalId);
-      }
-    });
-  }, [approvalDecisions, selectedPlaybookId, abortMission, clearApprovalDecision]);
-
-  // Handle WebSocket connection for active missions
-  useEffect(() => {
-    if (!selectedPlaybook || selectedPlaybook.status !== 'active') {
-      // Clean up existing connection if mission is not active
-      if (webSocketRef.current) {
-        webSocketRef.current.disconnect();
-        webSocketRef.current = null;
-      }
-      return;
-    }
-
-    // Create WebSocket connection for active mission
-    const ws = new MockDroneWebSocket(selectedPlaybook.id, selectedPlaybook.route, selectedPlaybook.missionType);
-
-    ws.onMessage((message) => {
-      switch (message.type) {
-        case 'position_update':
-          if (message.data) {
-            updateDrone(selectedPlaybook.id, message.data);
-          }
-          break;
-
-        case 'waypoint_reached':
-          if (message.data) {
-            updateDrone(selectedPlaybook.id, message.data);
-          }
-          break;
-
-        case 'approval_required':
-          if (message.approval) {
-            addApproval(message.approval);
-          }
-          break;
-
-        case 'mission_complete':
-          updatePlaybookStatus(selectedPlaybook.id, 'completed');
-          break;
-
-        case 'error':
-          console.error('Mission error:', message.error);
-          break;
-      }
-    });
-
-    ws.start();
-    webSocketRef.current = ws;
-
-    return () => {
-      ws.disconnect();
-    };
-  }, [selectedPlaybook?.id, selectedPlaybook?.status]);
-
   // Handle mission controls
-  const handleStartMission = () => {
-    if (selectedPlaybookId) {
-      startMission(selectedPlaybookId);
+  const handleStartMission = async () => {
+    if (!selectedPlaybook) return;
+
+    console.log(`🚀 Starting mission via ${isRealAPI ? 'REAL API' : 'MOCK'}`);
+    try {
+      await startMission(selectedPlaybook);
+    } catch (error) {
+      console.error('Failed to start mission:', error);
+      alert(`Failed to start mission: ${error}`);
     }
   };
 
-  const handlePauseMission = () => {
-    if (selectedPlaybookId && webSocketRef.current) {
-      webSocketRef.current.pause();
-      pauseMission(selectedPlaybookId);
+  const handlePauseMission = async () => {
+    if (!selectedPlaybookId) return;
+    try {
+      await pauseMission(selectedPlaybookId);
+    } catch (error) {
+      console.error('Failed to pause mission:', error);
     }
   };
 
-  const handleResumeMission = () => {
-    if (webSocketRef.current) {
-      webSocketRef.current.resume();
+  const handleResumeMission = async () => {
+    if (!selectedPlaybookId) return;
+    try {
+      await resumeMission(selectedPlaybookId);
+    } catch (error) {
+      console.error('Failed to resume mission:', error);
     }
   };
 
-  const handleAbortMission = () => {
-    if (selectedPlaybookId && webSocketRef.current) {
-      webSocketRef.current.abort();
-      abortMission(selectedPlaybookId);
+  const handleAbortMission = async () => {
+    if (!selectedPlaybookId) return;
+    try {
+      await abortMission(selectedPlaybookId);
+    } catch (error) {
+      console.error('Failed to abort mission:', error);
     }
   };
 
