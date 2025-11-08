@@ -168,7 +168,7 @@ async def list_playbooks():
 # WEBSOCKET
 # ============================================================================
 
-active_connections: Dict[str, list[WebSocket]] = {}
+active_connections: Dict[str, List[WebSocket]] = {}
 
 @app.websocket("/ws/mission/{mission_id}")
 async def websocket_mission_updates(websocket: WebSocket, mission_id: str):

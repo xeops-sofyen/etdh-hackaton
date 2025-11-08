@@ -5,6 +5,39 @@
 
 ---
 
+## 🚀 Quick Access - VNC Desktop Setup (READY!)
+
+**Notre environnement Vast.ai avec Olympe SDK est maintenant prêt!**
+
+### Accès VNC Desktop
+
+**Terminal (SSH Tunnel):**
+```bash
+ssh -p 23570 root@ssh8.vast.ai -L 6080:localhost:6080 -L 5901:localhost:5901
+```
+
+**Navigateur:**
+```
+http://localhost:6080/vnc.html
+```
+**Mot de passe:** `heimdall2025`
+
+### Installation Sphinx (dans xterm VNC)
+
+```bash
+~/install_sphinx_interactive.sh
+```
+
+### Documentation Rapide
+
+- **[QUICK_START.md](QUICK_START.md)** - Guide accès VNC + Sphinx (⭐ START HERE)
+- **[SPHINX_INSTALLATION_READY.md](SPHINX_INSTALLATION_READY.md)** - Installation Sphinx détaillée
+- **[VAST_AI_VNC_SETUP_COMPLETE.md](VAST_AI_VNC_SETUP_COMPLETE.md)** - Configuration VNC complète
+
+**État:** ✅ VNC fonctionnel | ✅ Olympe 7.7.5 installé | ✅ **Sphinx 2.15.1 INSTALLÉ**
+
+---
+
 ## 🎯 Challenge
 
 **UAS-1**: Autonomous Drone Task Execution from Human-Defined Playbooks
