@@ -5,36 +5,44 @@
 
 ---
 
-## 🚀 Quick Access - VNC Desktop Setup (READY!)
+## 🚀 Deployment Options
 
-**Notre environnement Vast.ai avec Olympe SDK est maintenant prêt!**
+### **Option 1: Google Cloud Platform (GCP) - Recommended**
 
-### Accès VNC Desktop
+**One-command automated deployment to GCP with GPU support:**
 
-**Terminal (SSH Tunnel):**
+```bash
+# Deploy VM with NVIDIA T4 GPU
+./scripts/deploy-sphinx-gcp.sh
+
+# SSH into VM and run setup
+gcloud compute ssh heimdall-sphinx-simulator --zone=europe-west1-b
+curl -fsSL https://raw.githubusercontent.com/xeops-sofyen/etdh-hackaton/main/scripts/setup-sphinx-vm.sh | bash
+```
+
+**Documentation:**
+- **[GCP_QUICKSTART.md](GCP_QUICKSTART.md)** - One-command deployment guide (⭐ **START HERE**)
+- **[GCP_SPHINX_DEPLOYMENT.md](GCP_SPHINX_DEPLOYMENT.md)** - Detailed deployment documentation
+
+**Features:** ✅ Automated deployment | ✅ GPU support | ✅ Production-ready | ✅ Systemd services
+
+---
+
+### **Option 2: Vast.ai (Alternative)**
+
+**VNC desktop environment for development:**
+
 ```bash
 ssh -p 23570 root@ssh8.vast.ai -L 6080:localhost:6080 -L 5901:localhost:5901
+# Access: http://localhost:6080/vnc.html (password: heimdall2025)
 ```
 
-**Navigateur:**
-```
-http://localhost:6080/vnc.html
-```
-**Mot de passe:** `heimdall2025`
+**Documentation:**
+- **[QUICK_START.md](QUICK_START.md)** - VNC access guide
+- **[SPHINX_INSTALLATION_READY.md](SPHINX_INSTALLATION_READY.md)** - Sphinx installation
+- **[VAST_AI_VNC_SETUP_COMPLETE.md](VAST_AI_VNC_SETUP_COMPLETE.md)** - VNC setup
 
-### Installation Sphinx (dans xterm VNC)
-
-```bash
-~/install_sphinx_interactive.sh
-```
-
-### Documentation Rapide
-
-- **[QUICK_START.md](QUICK_START.md)** - Guide accès VNC + Sphinx (⭐ START HERE)
-- **[SPHINX_INSTALLATION_READY.md](SPHINX_INSTALLATION_READY.md)** - Installation Sphinx détaillée
-- **[VAST_AI_VNC_SETUP_COMPLETE.md](VAST_AI_VNC_SETUP_COMPLETE.md)** - Configuration VNC complète
-
-**État:** ✅ VNC fonctionnel | ✅ Olympe 7.7.5 installé | ✅ **Sphinx 2.15.1 INSTALLÉ**
+**Status:** ✅ VNC functional | ✅ Olympe 7.7.5 installed | ✅ Sphinx 2.15.1 installed
 
 ---
 
