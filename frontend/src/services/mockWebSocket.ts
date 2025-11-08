@@ -1,5 +1,6 @@
 import type { DroneState, Approval } from '../types';
 import type { Point, FeatureCollection } from 'geojson';
+import { debugConfig } from '../utils/debugConfig';
 
 type MessageHandler = (message: WebSocketMessage) => void;
 
@@ -52,9 +53,11 @@ export class MockDroneWebSocket {
     this.progress = 0;
     this.battery = 100;
 
+    // Use debug speed multiplier (higher = faster updates)
+    const interval = 1000 / debugConfig.speedMultiplier;
     this.interval = setInterval(() => {
       this.tick();
-    }, 1000); // Update every second
+    }, interval);
   }
 
   pause() {
@@ -112,11 +115,13 @@ export class MockDroneWebSocket {
   private tick() {
     if (!this.isRunning || this.waypoints.length === 0) return;
 
-    // Update progress (move 2% per second toward next waypoint)
-    this.progress += 0.02;
+    // Update progress (move 2% per tick, multiplied by speed)
+    const progressIncrement = 0.02 * debugConfig.speedMultiplier;
+    this.progress += progressIncrement;
 
-    // Battery drain (0.5% per update)
-    this.battery = Math.max(0, this.battery - 0.5);
+    // Battery drain (0.5% per tick, affected by multiplier)
+    const batteryDrain = 0.5 * debugConfig.batteryDrainMultiplier;
+    this.battery = Math.max(0, this.battery - batteryDrain);
 
     // Check for battery depletion
     if (this.battery <= 0) {
@@ -159,10 +164,22 @@ export class MockDroneWebSocket {
             currentWaypointIndex: this.currentWaypointIndex,
           },
         });
-      }
 
-      // Random chance of approval request (5%)
-      if (Math.random() < 0.05 && this.currentWaypointIndex < this.waypoints.length - 1) {
+        // Check for approval at waypoint if approvalProgress is null (default behavior)
+        if (debugConfig.approvalProgress === null) {
+          if (Math.random() < debugConfig.approvalChance && this.currentWaypointIndex < this.waypoints.length - 1) {
+            this.sendApprovalRequest();
+          }
+        }
+      }
+    }
+
+    // Check for approval at specific progress point (debug mode)
+    if (debugConfig.approvalProgress !== null) {
+      const prevProgress = this.progress - progressIncrement;
+      const crossedThreshold = prevProgress < debugConfig.approvalProgress && this.progress >= debugConfig.approvalProgress;
+
+      if (crossedThreshold && Math.random() < debugConfig.approvalChance && this.currentWaypointIndex < this.waypoints.length - 1) {
         this.sendApprovalRequest();
       }
     }
@@ -253,6 +270,9 @@ export class MockDroneWebSocket {
   }
 
   private sendApprovalRequest() {
+    // Pause drone while waiting for approval
+    this.pause();
+
     const approvalTypes: Array<'anomaly' | 'deviation' | 'high_risk'> = [
       'anomaly',
       'deviation',

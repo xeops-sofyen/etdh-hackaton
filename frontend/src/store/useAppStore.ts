@@ -21,9 +21,11 @@ interface AppStore {
 
   // Approvals
   pendingApprovals: Approval[];
+  approvalDecisions: Map<string, { decision: 'approved' | 'denied', playbookId: string }>;
   approveAction: (approvalId: string) => void;
   denyAction: (approvalId: string) => void;
   addApproval: (approval: Approval) => void;
+  clearApprovalDecision: (approvalId: string) => void;
 
   // UI state
   isBuilderOpen: boolean;
@@ -38,6 +40,7 @@ export const useAppStore = create<AppStore>((set) => ({
   selectedPlaybookId: null,
   drones: new Map(),
   pendingApprovals: [],
+  approvalDecisions: new Map(),
   isBuilderOpen: false,
   activeTab: 'active',
 
@@ -110,18 +113,49 @@ export const useAppStore = create<AppStore>((set) => ({
     })),
 
   approveAction: (approvalId) =>
-    set((state) => ({
-      pendingApprovals: state.pendingApprovals.filter(
-        (approval) => approval.id !== approvalId
-      ),
-    })),
+    set((state) => {
+      const approval = state.pendingApprovals.find((a) => a.id === approvalId);
+      if (!approval) return state;
+
+      const newDecisions = new Map(state.approvalDecisions);
+      newDecisions.set(approvalId, {
+        decision: 'approved',
+        playbookId: approval.playbookId,
+      });
+
+      return {
+        pendingApprovals: state.pendingApprovals.filter(
+          (a) => a.id !== approvalId
+        ),
+        approvalDecisions: newDecisions,
+      };
+    }),
 
   denyAction: (approvalId) =>
-    set((state) => ({
-      pendingApprovals: state.pendingApprovals.filter(
-        (approval) => approval.id !== approvalId
-      ),
-    })),
+    set((state) => {
+      const approval = state.pendingApprovals.find((a) => a.id === approvalId);
+      if (!approval) return state;
+
+      const newDecisions = new Map(state.approvalDecisions);
+      newDecisions.set(approvalId, {
+        decision: 'denied',
+        playbookId: approval.playbookId,
+      });
+
+      return {
+        pendingApprovals: state.pendingApprovals.filter(
+          (a) => a.id !== approvalId
+        ),
+        approvalDecisions: newDecisions,
+      };
+    }),
+
+  clearApprovalDecision: (approvalId) =>
+    set((state) => {
+      const newDecisions = new Map(state.approvalDecisions);
+      newDecisions.delete(approvalId);
+      return { approvalDecisions: newDecisions };
+    }),
 
   // UI actions
   setBuilderOpen: (open) =>

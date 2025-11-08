@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { MapView } from '../MapView/MapView';
 import { MockDroneWebSocket } from '../../services/mockWebSocket';
+import { ApprovalQueue } from '../ApprovalQueue/ApprovalQueue';
 import styles from './MainView.module.css';
 
 export const MainView = () => {
@@ -15,6 +16,8 @@ export const MainView = () => {
     pauseMission,
     abortMission,
     updatePlaybookStatus,
+    approvalDecisions,
+    clearApprovalDecision,
   } = useAppStore();
 
   const webSocketRef = useRef<MockDroneWebSocket | null>(null);
@@ -23,6 +26,24 @@ export const MainView = () => {
   const droneState = selectedPlaybookId
     ? drones.get(selectedPlaybookId)
     : null;
+
+  // Handle approval decisions
+  useEffect(() => {
+    approvalDecisions.forEach((decision, approvalId) => {
+      if (decision.playbookId === selectedPlaybookId && webSocketRef.current) {
+        if (decision.decision === 'approved') {
+          // Resume mission
+          webSocketRef.current.resume();
+        } else if (decision.decision === 'denied') {
+          // Abort mission
+          webSocketRef.current.abort();
+          abortMission(decision.playbookId);
+        }
+        // Clear the decision after handling
+        clearApprovalDecision(approvalId);
+      }
+    });
+  }, [approvalDecisions, selectedPlaybookId, abortMission, clearApprovalDecision]);
 
   // Handle WebSocket connection for active missions
   useEffect(() => {
@@ -193,6 +214,8 @@ export const MainView = () => {
           </button>
         </div>
       )}
+
+      <ApprovalQueue />
     </div>
   );
 };
