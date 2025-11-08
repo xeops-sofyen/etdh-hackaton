@@ -7,7 +7,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid #374151;
+  background: #0a0e14;
 }
 
 .messages {
@@ -19,9 +20,26 @@
   gap: 16px;
 }
 
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
 .message {
   display: flex;
-  max-width: 80%;
+  max-width: 75%;
 }
 
 .userMessage {
@@ -33,23 +51,29 @@
 }
 
 .messageContent {
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.5;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
   white-space: pre-wrap;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  border: 1px solid;
 }
 
 .userMessage .messageContent {
-  background: #2563eb;
-  color: white;
-  border-bottom-right-radius: 4px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #0a0e14;
+  border-color: #34d399;
+  border-bottom-right-radius: 2px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  font-weight: 600;
 }
 
 .assistantMessage .messageContent {
-  background: #f3f4f6;
-  color: #111827;
-  border-bottom-left-radius: 4px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #e5e7eb;
+  border-color: #374151;
+  border-bottom-left-radius: 2px;
 }
 
 .typing {
@@ -61,9 +85,10 @@
 .typing span {
   width: 8px;
   height: 8px;
-  background: #9ca3af;
+  background: #10b981;
   border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
 }
 
 .typing span:nth-child(1) {
@@ -89,89 +114,115 @@
 
 .inputSection {
   padding: 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #374151;
   display: flex;
   gap: 12px;
+  background: linear-gradient(135deg, #0f1419 0%, #111827 100%);
 }
 
 .input {
   flex: 1;
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
+  padding: 14px;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
   resize: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+  background: #1f2937;
+  color: #e5e7eb;
 }
 
 .input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #10b981;
+  background: #111827;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
 .input:disabled {
-  background: #f3f4f6;
+  background: #111827;
+  color: #6b7280;
   cursor: not-allowed;
+  border-color: #1f2937;
 }
 
 .sendButton {
-  padding: 12px 24px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #0a0e14;
+  border: 1px solid #34d399;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
 .sendButton:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
 }
 
 .sendButton:disabled {
-  background: #9ca3af;
+  background: #374151;
+  border-color: #4b5563;
+  color: #6b7280;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .previewSection {
-  width: 400px;
+  width: 450px;
   display: flex;
   flex-direction: column;
-  background: #f9fafb;
+  background: linear-gradient(180deg, #111827 0%, #0f1419 100%);
 }
 
 .previewHeader {
-  padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  border-bottom: 1px solid #374151;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(16, 185, 129, 0.05);
 }
 
 .previewTitle {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
+  font-size: 12px;
+  font-weight: 700;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
 }
 
 .acceptButton {
-  padding: 8px 16px;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #0a0e14;
+  border: 1px solid #34d399;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
 .acceptButton:hover {
-  background: #059669;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
 }
 
 .preview {
@@ -181,31 +232,37 @@
 }
 
 .playbookInfo {
-  padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  border-bottom: 1px solid #374151;
+  background: #0a0e14;
 }
 
 .infoRow {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 13px;
+  margin-bottom: 10px;
+  font-size: 12px;
 }
 
 .label {
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
 }
 
 .value {
-  color: #111827;
-  font-weight: 600;
+  color: #10b981;
+  font-weight: 700;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
 }
 
 .previewMap {
   flex: 1;
   width: 100%;
   height: 100%;
+  filter: brightness(0.85) contrast(1.1);
 }
 
 .emptyPreview {
@@ -213,12 +270,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 60px 40px;
+  background: #0a0e14;
 }
 
 .emptyPreview p {
   text-align: center;
-  color: #9ca3af;
-  font-size: 14px;
-  line-height: 1.5;
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.8;
+  font-style: italic;
 }
