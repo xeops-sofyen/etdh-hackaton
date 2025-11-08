@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     git \
     curl \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
@@ -27,12 +28,8 @@ COPY backend/ /app/backend/
 COPY playbooks/ /app/playbooks/
 COPY tests/ /app/tests/
 
-# Install Python dependencies
-# Note: parrot-olympe is optional (not available on PyPI, must be installed separately)
-# The code handles missing Olympe gracefully - install all other dependencies
-RUN grep -v "^parrot-olympe" backend/requirements.txt | grep -v "^#" | grep -v "^$" > /tmp/requirements.txt && \
-    pip3 install -r /tmp/requirements.txt && \
-    echo "Note: parrot-olympe skipped (optional, not on PyPI)"
+# Install Python dependencies including parrot-olympe
+RUN pip3 install -r backend/requirements.txt
 
 # Set PYTHONPATH so Python can find the backend module
 ENV PYTHONPATH=/app
