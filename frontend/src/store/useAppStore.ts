@@ -58,7 +58,16 @@ export const useAppStore = create<AppStore>((set) => ({
   updatePlaybookStatus: (id, status) =>
     set((state) => ({
       playbooks: state.playbooks.map((p) =>
-        p.id === id ? { ...p, status } : p
+        p.id === id
+          ? {
+              ...p,
+              status,
+              completedAt:
+                status === 'completed' || status === 'failed'
+                  ? new Date()
+                  : p.completedAt,
+            }
+          : p
       ),
     })),
 
@@ -66,7 +75,14 @@ export const useAppStore = create<AppStore>((set) => ({
   startMission: (playbookId) =>
     set((state) => ({
       playbooks: state.playbooks.map((p) =>
-        p.id === playbookId ? { ...p, status: 'active' } : p
+        p.id === playbookId
+          ? {
+              ...p,
+              status: 'active',
+              startedAt: new Date(),
+              completedAt: undefined,
+            }
+          : p
       ),
     })),
 
@@ -87,7 +103,9 @@ export const useAppStore = create<AppStore>((set) => ({
   abortMission: (playbookId) =>
     set((state) => ({
       playbooks: state.playbooks.map((p) =>
-        p.id === playbookId ? { ...p, status: 'failed' } : p
+        p.id === playbookId
+          ? { ...p, status: 'failed', completedAt: new Date() }
+          : p
       ),
     })),
 

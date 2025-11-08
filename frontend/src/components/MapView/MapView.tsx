@@ -13,18 +13,37 @@ interface MapViewProps {
 }
 
 // Component to fit bounds when route changes
-function FitBounds({ route }: { route: FeatureCollection }) {
+function FitBounds({ route, droneState }: { route: FeatureCollection; droneState?: DroneState | null }) {
   const map = useMap();
+  const hasDroneStateRef = useRef(false);
 
   useEffect(() => {
+    const hasDroneState = !!droneState;
+    const droneStateJustAppeared = !hasDroneStateRef.current && hasDroneState;
+    hasDroneStateRef.current = hasDroneState;
+
     if (route.features.length > 0) {
       const geoJsonLayer = L.geoJSON(route);
       const bounds = geoJsonLayer.getBounds();
       if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [50, 50] });
+        // If telemetry panel just appeared, invalidate map size first
+        if (droneStateJustAppeared) {
+          setTimeout(() => {
+            map.invalidateSize();
+            map.fitBounds(bounds, {
+              padding: [80, 80],
+              maxZoom: 15,
+            });
+          }, 100); // Small delay to let DOM update
+        } else {
+          map.fitBounds(bounds, {
+            padding: [80, 80],
+            maxZoom: 15, // Prevent zooming too close on small routes
+          });
+        }
       }
     }
-  }, [route, map]);
+  }, [route, map, droneState]);
 
   return null;
 }
@@ -113,7 +132,7 @@ export const MapView = ({ route, playbookId, droneState, center = [49.58, 22.67]
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GeoJSON key={playbookId} data={route} />
-        <FitBounds route={route} />
+        <FitBounds route={route} droneState={droneState} />
 
         {/* Render waypoint markers */}
         {route.features

@@ -9,6 +9,8 @@ export const mockPlaybooks: Playbook[] = [
     missionType: 'surveillance',
     status: 'active',
     createdAt: new Date('2025-11-08T00:30:00'),
+    startedAt: new Date(Date.now() - 30000), // Started 30 seconds ago
+    estimatedDuration: 180, // 3 minutes
     route: {
       type: 'FeatureCollection',
       features: [
@@ -61,6 +63,7 @@ export const mockPlaybooks: Playbook[] = [
     missionType: 'delivery',
     status: 'planned',
     createdAt: new Date('2025-11-08T01:00:00'),
+    estimatedDuration: 120, // 2 minutes
     route: {
       type: 'FeatureCollection',
       features: [
@@ -104,6 +107,7 @@ export const mockPlaybooks: Playbook[] = [
     missionType: 'surveillance',
     status: 'planned',
     createdAt: new Date('2025-11-07T22:15:00'),
+    estimatedDuration: 240, // 4 minutes
     route: {
       type: 'FeatureCollection',
       features: [
@@ -165,6 +169,7 @@ export const mockPlaybooks: Playbook[] = [
     missionType: 'surveillance',
     status: 'completed',
     createdAt: new Date('2025-11-07T18:00:00'),
+    estimatedDuration: 90, // 1.5 minutes
     route: {
       type: 'FeatureCollection',
       features: [
@@ -204,6 +209,7 @@ export const mockPlaybooks: Playbook[] = [
     missionType: 'delivery',
     status: 'failed',
     createdAt: new Date('2025-11-07T16:30:00'),
+    estimatedDuration: 150, // 2.5 minutes
     route: {
       type: 'FeatureCollection',
       features: [

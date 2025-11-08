@@ -8,6 +8,9 @@ export interface Playbook {
   route: FeatureCollection; // Mission geometry
   createdAt: Date;
   status: 'planned' | 'active' | 'completed' | 'failed';
+  startedAt?: Date; // When mission was started
+  completedAt?: Date; // When mission completed/failed
+  estimatedDuration?: number; // Estimated duration in seconds
   metadata?: Record<string, any>; // Extensible
 }
 
