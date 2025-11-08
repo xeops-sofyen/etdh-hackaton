@@ -174,6 +174,7 @@ class OlympeTranslator:
             longitude=waypoint.lon,
             altitude=waypoint.alt,
             orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
+            heading=0.0, #mandatory parameter
             max_horizontal_speed=10.0,
             max_vertical_speed=2.0,
             max_yaw_rotation_speed=45.0
