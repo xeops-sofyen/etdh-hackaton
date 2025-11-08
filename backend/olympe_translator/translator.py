@@ -11,6 +11,7 @@ from olympe.messages.ardrone3.Piloting import (
     TakeOff, Landing, moveTo, moveBy, Circle, PCMD
 )
 from olympe.messages.ardrone3.PilotingSettings import MaxTilt
+from olympe.messages.ardrone3.PilotingState import PositionChanged
 from olympe.messages.camera import (
     set_camera_mode, take_photo, start_recording, stop_recording
 )
@@ -23,6 +24,20 @@ import time
 from backend.playbook_parser.schema import MissionPlaybook, Waypoint, CameraSettings
 
 logger = logging.getLogger(__name__)
+
+
+class PositionEventListener(olympe.EventListener):
+    """
+    Event listener that logs drone position coordinates (latitude, longitude)
+    """
+    
+    @olympe.listen_event(PositionChanged())
+    def onPositionChanged(self, event, scheduler):
+        """Log position coordinates when position changes"""
+        latitude = event.args.get("latitude")
+        longitude = event.args.get("longitude")
+        altitude = event.args.get("altitude")
+        logger.info(f"📍 Position update - Latitude: {latitude}, Longitude: {longitude}, Altitude: {altitude}")
 
 
 class OlympeTranslator:
@@ -44,6 +59,7 @@ class OlympeTranslator:
         self.drone: Optional[olympe.Drone] = None
         self.current_mission: Optional[MissionPlaybook] = None
         self.telemetry_callback = None
+        self.position_listener: Optional[PositionEventListener] = None
 
     def connect(self) -> bool:
         """Connect to drone"""
@@ -52,6 +68,12 @@ class OlympeTranslator:
             self.drone = olympe.Drone(self.drone_ip)
             self.drone.connect()
             logger.info("✅ Connected to drone")
+            
+            # Start listening to position events
+            self.position_listener = PositionEventListener(self.drone)
+            self.position_listener.subscribe()
+            logger.info("✅ Position event listener subscribed")
+            
             return True
         except Exception as e:
             logger.error(f"❌ Failed to connect: {e}")
@@ -59,6 +81,12 @@ class OlympeTranslator:
 
     def disconnect(self):
         """Disconnect from drone"""
+        # Unsubscribe from position events
+        if self.position_listener:
+            self.position_listener.unsubscribe()
+            self.position_listener = None
+            logger.info("Position event listener unsubscribed")
+        
         if self.drone:
             self.drone.disconnect()
             logger.info("Disconnected from drone")
