@@ -52,9 +52,14 @@ export const useAppStore = create<AppStore>((set) => ({
 
   // Playbook actions
   addPlaybook: (playbook) =>
-    set((state) => ({
-      playbooks: [...state.playbooks, playbook],
-    })),
+    set((state) => {
+      if (state.playbooks.some((p) => p.id === playbook.id)) {
+        return state;
+      }
+      return {
+        playbooks: [...state.playbooks, playbook],
+      };
+    }),
 
   selectPlaybook: (id) =>
     set({

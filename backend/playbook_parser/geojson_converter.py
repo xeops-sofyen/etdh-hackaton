@@ -34,30 +34,38 @@ def geojson_to_playbook(geojson: Dict[str, Any], mission_id: str = "geojson_miss
         coordinates = geometry.get("coordinates", [])
 
         if geo_type == "Point":
-            # GeoJSON format: [longitude, latitude]
+            # GeoJSON format: [longitude, latitude] or [longitude, latitude, altitude]
             # We need: [latitude, longitude] for drone commands
             if len(coordinates) >= 2:
                 lon, lat = coordinates[0], coordinates[1]
+                
+                # Get altitude from properties, coordinate z-value, or default to 100m
+                properties = feature.get("properties", {})
+                alt = properties.get("altitude") or (coordinates[2] if len(coordinates) >= 3 else None) or 100
 
-                # Create waypoint with default altitude
+                # Create waypoint with altitude from properties
                 waypoint = Waypoint(
                     lat=lat,
                     lon=lon,
-                    alt=100,  # Default 100m altitude
+                    alt=alt,
                     action="photo"  # Take photo at each point
                 )
                 waypoints.append(waypoint)
 
         elif geo_type == "LineString":
             # LineString contains ordered waypoints
+            properties = feature.get("properties", {})
             for coord in coordinates:
                 if len(coord) >= 2:
                     lon, lat = coord[0], coord[1]
+                    
+                    # Get altitude from properties, coordinate z-value, or default to 100m
+                    alt = properties.get("altitude") or (coord[2] if len(coord) >= 3 else None) or 100
 
                     waypoint = Waypoint(
                         lat=lat,
                         lon=lon,
-                        alt=100,
+                        alt=alt,
                         action="photo"
                     )
                     waypoints.append(waypoint)

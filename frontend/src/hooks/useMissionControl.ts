@@ -24,8 +24,15 @@ console.log(`🔧 Mission Control Mode: ${USE_REAL_API ? 'REAL API' : 'MOCK'}`);
 // ============================================================================
 
 export function useMissionControl() {
-  const { updateDrone, addApproval, updatePlaybookStatus } = useAppStore();
+  const {
+    updateDrone,
+    addApproval,
+    updatePlaybookStatus,
+    addPlaybook,
+    selectPlaybook,
+  } = useAppStore();
   const webSocketsRef = useRef<Map<string, MockDroneWebSocket | HeimdallWebSocket>>(new Map());
+  const playbooksLoadedRef = useRef(false);
 
   /**
    * Start a mission
@@ -97,6 +104,36 @@ export function useMissionControl() {
       throw error;
     }
   };
+
+  useEffect(() => {
+    if (!USE_REAL_API || playbooksLoadedRef.current) return;
+
+    let cancelled = false;
+
+    const loadDefaultPlaybooks = async () => {
+      try {
+        const remotePlaybooks = await heimdallAPI.fetchPlaybooks();
+        if (cancelled) return;
+
+        playbooksLoadedRef.current = true;
+
+        if (!remotePlaybooks.length) {
+          return;
+        }
+
+        remotePlaybooks.forEach((playbook) => addPlaybook(playbook));
+        selectPlaybook(remotePlaybooks[0].id);
+      } catch (error) {
+        console.error('Failed to load backend playbooks:', error);
+      }
+    };
+
+    loadDefaultPlaybooks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [addPlaybook, selectPlaybook]);
 
   /**
    * Pause a mission

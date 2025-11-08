@@ -4,7 +4,7 @@
  */
 
 import type { Playbook, DroneState } from '../types';
-import type { Point } from 'geojson';
+import type { Feature, FeatureCollection, Point } from 'geojson';
 
 // Backend configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -100,6 +100,69 @@ function backendToDroneState(playbookId: string, backendStatus: any): DroneState
     heading: backendStatus.heading || 0,
     status: backendStatus.status || 'idle',
     currentWaypointIndex: backendStatus.current_waypoint || 0,
+  };
+}
+
+type BackendWaypoint = {
+  lat?: number;
+  lon?: number;
+  alt?: number;
+  altitude?: number;
+  action?: string;
+  hover_duration_sec?: number;
+};
+
+function waypointToFeature(waypoint: BackendWaypoint, index: number): Feature<Point> | null {
+  const lat = Number(waypoint?.lat);
+  const lon = Number(waypoint?.lon);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return null;
+  }
+
+  return {
+    type: 'Feature',
+    properties: {
+      action: waypoint?.action ?? null,
+      altitude: waypoint?.alt ?? waypoint?.altitude ?? null,
+      hoverDurationSec: waypoint?.hover_duration_sec ?? null,
+      sequence: index + 1,
+    },
+    geometry: {
+      type: 'Point',
+      coordinates: [lon, lat],
+    },
+  };
+}
+
+function backendMissionToPlaybook(data: any): Playbook {
+  const missionId = data.mission_id ?? `playbook-${Date.now()}`;
+  const waypointList: BackendWaypoint[] = Array.isArray(data.waypoints)
+    ? data.waypoints.filter(
+        (wp: unknown): wp is BackendWaypoint => typeof wp === 'object' && wp !== null
+      )
+    : [];
+  const features = waypointList
+    .map((waypoint: BackendWaypoint, index: number) => waypointToFeature(waypoint, index))
+    .filter((feature): feature is Feature<Point> => feature !== null);
+
+  const missionType = data.mission_type === 'delivery' ? 'delivery' : 'surveillance';
+
+  const route: FeatureCollection = {
+    type: 'FeatureCollection',
+    features,
+  };
+
+  return {
+    id: missionId,
+    name: data.description ?? missionId,
+    missionType,
+    route,
+    createdAt: new Date(data.created_at ?? Date.now()),
+    status: 'planned',
+    estimatedDuration:
+      typeof data.max_duration_min === 'number' ? data.max_duration_min * 60 : undefined,
+    metadata: data,
   };
 }
 
@@ -244,6 +307,29 @@ export class HeimdallAPI {
     }
 
     return response.json();
+  }
+
+  /**
+   * Fetch and convert all example playbooks from the backend
+   */
+  async fetchPlaybooks(): Promise<Playbook[]> {
+    const storedList = await this.listPlaybooks();
+    if (!storedList.length) {
+      return [];
+    }
+
+    const fetchers = storedList.map(async (entry) => {
+      try {
+        const data = await this.getPlaybook(entry.filename);
+        return backendMissionToPlaybook(data);
+      } catch (error) {
+        console.warn(`Failed to load playbook ${entry.filename}:`, error);
+        return null;
+      }
+    });
+
+    const results = await Promise.all(fetchers);
+    return results.filter((playbook): playbook is Playbook => Boolean(playbook));
   }
 
   /**
