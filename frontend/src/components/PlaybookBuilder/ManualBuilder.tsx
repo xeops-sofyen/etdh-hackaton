@@ -1,8 +1,16 @@
-import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, useMapEvents } from 'react-leaflet';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, ImageOverlay, Marker, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import type { FeatureCollection, Feature } from 'geojson';
 import { useAppStore } from '../../store/useAppStore';
 import styles from './ManualBuilder.module.css';
+
+// Define the sector bounds (coordinates matching the aerial image area)
+// Image dimensions: 1456 × 970 (aspect ratio ~1.5:1)
+// Bounds adjusted to prevent distortion at latitude ~49.5°
+const SECTOR_BOUNDS: [[number, number], [number, number]] = [
+  [49.55, 22.61], // Southwest corner
+  [49.60, 22.73], // Northeast corner
+];
 
 interface Waypoint {
   id: string;
@@ -20,6 +28,61 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number
     },
   });
   return null;
+}
+
+// Tactical grid overlay
+function TacticalGrid() {
+  const map = useMap();
+  const [gridLines, setGridLines] = useState<React.ReactElement[]>([]);
+
+  useEffect(() => {
+    const bounds = map.getBounds();
+    const lines: React.ReactElement[] = [];
+
+    // Calculate grid spacing (every 0.01 degrees)
+    const latSpacing = 0.01;
+    const lngSpacing = 0.01;
+
+    // Vertical lines (longitude)
+    for (let lng = Math.floor(bounds.getWest() / lngSpacing) * lngSpacing; lng <= bounds.getEast(); lng += lngSpacing) {
+      lines.push(
+        <Polyline
+          key={`v-${lng}`}
+          positions={[
+            [bounds.getSouth(), lng],
+            [bounds.getNorth(), lng],
+          ]}
+          pathOptions={{
+            color: '#10b981',
+            weight: 1,
+            opacity: 0.2,
+          }}
+        />
+      );
+    }
+
+    // Horizontal lines (latitude)
+    for (let lat = Math.floor(bounds.getSouth() / latSpacing) * latSpacing; lat <= bounds.getNorth(); lat += latSpacing) {
+      lines.push(
+        <Polyline
+          key={`h-${lat}`}
+          positions={[
+            [lat, bounds.getWest()],
+            [lat, bounds.getEast()],
+          ]}
+          pathOptions={{
+            color: '#10b981',
+            weight: 1,
+            opacity: 0.2,
+          }}
+        />
+      );
+    }
+
+    setGridLines(lines);
+  }, [map]);
+
+  return <>{gridLines}</>;
 }
 
 export const ManualBuilder = () => {
@@ -112,14 +175,20 @@ export const ManualBuilder = () => {
     <div className={styles.container}>
       <div className={styles.mapSection}>
         <MapContainer
-          center={[49.58, 22.67]}
+          center={[49.575, 22.67]}
           zoom={13}
           className={styles.map}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          {/* Sector aerial image overlay */}
+          <ImageOverlay
+            url="/sector.jpg"
+            bounds={SECTOR_BOUNDS}
+            opacity={1}
           />
+
+          {/* Tactical grid overlay */}
+          <TacticalGrid />
+
           <MapClickHandler onMapClick={handleMapClick} />
 
           {waypoints.map((wp) => (

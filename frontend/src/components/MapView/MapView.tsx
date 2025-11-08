@@ -1,15 +1,78 @@
-import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, useMap, Marker, Polyline, CircleMarker } from 'react-leaflet';
+import React, { useEffect, useRef, useState } from 'react';
+import { MapContainer, ImageOverlay, GeoJSON, useMap, Marker, Polyline, CircleMarker } from 'react-leaflet';
 import type { FeatureCollection, Point } from 'geojson';
 import type { DroneState } from '../../types';
 import L from 'leaflet';
 import styles from './MapView.module.css';
+
+// Define the sector bounds (coordinates matching the aerial image area)
+// Image dimensions: 1456 × 970 (aspect ratio ~1.5:1)
+// Bounds adjusted to prevent distortion at latitude ~49.5°
+const SECTOR_BOUNDS: [[number, number], [number, number]] = [
+  [49.55, 22.61], // Southwest corner
+  [49.60, 22.73], // Northeast corner
+];
 
 interface MapViewProps {
   route: FeatureCollection;
   playbookId: string;
   droneState?: DroneState | null;
   center?: [number, number];
+}
+
+// Tactical grid overlay
+function TacticalGrid() {
+  const map = useMap();
+  const [gridLines, setGridLines] = useState<React.ReactElement[]>([]);
+
+  useEffect(() => {
+    const bounds = map.getBounds();
+    const lines: React.ReactElement[] = [];
+
+    // Calculate grid spacing (every 0.01 degrees)
+    const latSpacing = 0.01;
+    const lngSpacing = 0.01;
+
+    // Vertical lines (longitude)
+    for (let lng = Math.floor(bounds.getWest() / lngSpacing) * lngSpacing; lng <= bounds.getEast(); lng += lngSpacing) {
+      lines.push(
+        <Polyline
+          key={`v-${lng}`}
+          positions={[
+            [bounds.getSouth(), lng],
+            [bounds.getNorth(), lng],
+          ]}
+          pathOptions={{
+            color: '#10b981',
+            weight: 1,
+            opacity: 0.2,
+          }}
+        />
+      );
+    }
+
+    // Horizontal lines (latitude)
+    for (let lat = Math.floor(bounds.getSouth() / latSpacing) * latSpacing; lat <= bounds.getNorth(); lat += latSpacing) {
+      lines.push(
+        <Polyline
+          key={`h-${lat}`}
+          positions={[
+            [lat, bounds.getWest()],
+            [lat, bounds.getEast()],
+          ]}
+          pathOptions={{
+            color: '#10b981',
+            weight: 1,
+            opacity: 0.2,
+          }}
+        />
+      );
+    }
+
+    setGridLines(lines);
+  }, [map]);
+
+  return <>{gridLines}</>;
 }
 
 // Component to fit bounds when route changes
@@ -53,17 +116,21 @@ const createDroneIcon = (heading: number) => {
   return L.divIcon({
     className: 'custom-drone-icon',
     html: `
-      <div style="transform: rotate(${heading}deg); width: 30px; height: 30px;">
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="15" cy="15" r="14" fill="#10b981" opacity="0.2"/>
-          <circle cx="15" cy="15" r="10" fill="#10b981" opacity="0.4"/>
-          <path d="M15 5 L20 20 L15 17 L10 20 Z" fill="#10b981" stroke="#34d399" stroke-width="1.5"/>
-          <circle cx="15" cy="15" r="3" fill="#34d399"/>
+      <div style="transform: rotate(${heading}deg); width: 50px; height: 50px;">
+        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer glow rings -->
+          <circle cx="25" cy="25" r="22" fill="#00d9ff" opacity="0.15"/>
+          <circle cx="25" cy="25" r="18" fill="#00d9ff" opacity="0.25"/>
+          <circle cx="25" cy="25" r="14" fill="#00d9ff" opacity="0.35"/>
+
+          <!-- Center core -->
+          <circle cx="25" cy="25" r="5" fill="#ffffff" stroke="#0a0e14" stroke-width="2"/>
+          <circle cx="25" cy="25" r="3" fill="#00d9ff"/>
         </svg>
       </div>
     `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
+    iconSize: [50, 50],
+    iconAnchor: [25, 25],
   });
 };
 
@@ -103,15 +170,16 @@ function DronePathTrail({ droneState, route }: { droneState: DroneState; route: 
     <Polyline
       positions={pathPoints}
       pathOptions={{
-        color: '#a855f7',
-        weight: 3,
-        opacity: 0.7,
+        color: '#ef4444',
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 5',
       }}
     />
   );
 }
 
-export const MapView = ({ route, playbookId, droneState, center = [49.58, 22.67] }: MapViewProps) => {
+export const MapView = ({ route, playbookId, droneState, center = [49.575, 22.67] }: MapViewProps) => {
   const mapRef = useRef(null);
 
   // Extract drone position
@@ -127,10 +195,15 @@ export const MapView = ({ route, playbookId, droneState, center = [49.58, 22.67]
         className={styles.leafletContainer}
         ref={mapRef}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        {/* Sector aerial image overlay */}
+        <ImageOverlay
+          url="/sector.jpg"
+          bounds={SECTOR_BOUNDS}
+          opacity={1}
         />
+
+        {/* Tactical grid overlay */}
+        <TacticalGrid />
         <GeoJSON
           key={playbookId}
           data={route}

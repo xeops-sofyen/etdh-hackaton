@@ -14,18 +14,22 @@
   background: transparent !important;
   border: none !important;
   transition: transform 0.3s ease;
+  z-index: 1000 !important;
 }
 
 :global(.custom-drone-icon svg) {
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
-  animation: pulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px #ef4444) drop-shadow(0 0 4px rgba(0, 0, 0, 0.9));
+  animation: dronePulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
+@keyframes dronePulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 12px #ef4444)
+      drop-shadow(0 0 4px rgba(0, 0, 0, 0.9));
   }
   50% {
-    opacity: 0.7;
+    filter: drop-shadow(0 0 20px #3b82f6)
+      drop-shadow(0 0 6px rgba(0, 0, 0, 0.9));
   }
 }

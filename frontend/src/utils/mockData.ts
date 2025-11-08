@@ -19,7 +19,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 0 },
           geometry: {
             type: 'Point',
-            coordinates: [22.676025735635818, 49.58809075009475],
+            coordinates: [22.68, 49.59],
           },
         },
         {
@@ -27,7 +27,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 1 },
           geometry: {
             type: 'Point',
-            coordinates: [22.650759135512743, 49.57580919435844],
+            coordinates: [22.65, 49.575],
           },
         },
         {
@@ -35,7 +35,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 2 },
           geometry: {
             type: 'Point',
-            coordinates: [22.67371444036104, 49.55304323176125],
+            coordinates: [22.67, 49.56],
           },
         },
         {
@@ -44,9 +44,9 @@ export const mockPlaybooks: Playbook[] = [
           geometry: {
             type: 'LineString',
             coordinates: [
-              [22.676025735635818, 49.58809075009475],
-              [22.650759135512743, 49.57580919435844],
-              [22.67371444036104, 49.55304323176125],
+              [22.68, 49.59],
+              [22.65, 49.575],
+              [22.67, 49.56],
             ],
           },
         },
@@ -72,7 +72,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 0, label: 'Pickup' },
           geometry: {
             type: 'Point',
-            coordinates: [22.68, 49.59],
+            coordinates: [22.70, 49.58],
           },
         },
         {
@@ -80,7 +80,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 1, label: 'Dropoff' },
           geometry: {
             type: 'Point',
-            coordinates: [22.65, 49.56],
+            coordinates: [22.64, 49.57],
           },
         },
         {
@@ -89,8 +89,8 @@ export const mockPlaybooks: Playbook[] = [
           geometry: {
             type: 'LineString',
             coordinates: [
-              [22.68, 49.59],
-              [22.65, 49.56],
+              [22.70, 49.58],
+              [22.64, 49.57],
             ],
           },
         },
@@ -116,7 +116,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 0 },
           geometry: {
             type: 'Point',
-            coordinates: [22.66, 49.585],
+            coordinates: [22.63, 49.59],
           },
         },
         {
@@ -124,7 +124,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 1 },
           geometry: {
             type: 'Point',
-            coordinates: [22.665, 49.58],
+            coordinates: [22.66, 49.58],
           },
         },
         {
@@ -132,7 +132,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 2 },
           geometry: {
             type: 'Point',
-            coordinates: [22.67, 49.575],
+            coordinates: [22.69, 49.57],
           },
         },
         {
@@ -140,7 +140,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 3 },
           geometry: {
             type: 'Point',
-            coordinates: [22.675, 49.57],
+            coordinates: [22.72, 49.56],
           },
         },
         {
@@ -149,10 +149,10 @@ export const mockPlaybooks: Playbook[] = [
           geometry: {
             type: 'LineString',
             coordinates: [
-              [22.66, 49.585],
-              [22.665, 49.58],
-              [22.67, 49.575],
-              [22.675, 49.57],
+              [22.63, 49.59],
+              [22.66, 49.58],
+              [22.69, 49.57],
+              [22.72, 49.56],
             ],
           },
         },
@@ -178,7 +178,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 0 },
           geometry: {
             type: 'Point',
-            coordinates: [22.69, 49.58],
+            coordinates: [22.71, 49.585],
           },
         },
         {
@@ -186,7 +186,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 1 },
           geometry: {
             type: 'Point',
-            coordinates: [22.695, 49.575],
+            coordinates: [22.68, 49.565],
           },
         },
         {
@@ -195,8 +195,8 @@ export const mockPlaybooks: Playbook[] = [
           geometry: {
             type: 'LineString',
             coordinates: [
-              [22.69, 49.58],
-              [22.695, 49.575],
+              [22.71, 49.585],
+              [22.68, 49.565],
             ],
           },
         },
@@ -218,7 +218,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 0, label: 'Hospital' },
           geometry: {
             type: 'Point',
-            coordinates: [22.64, 49.59],
+            coordinates: [22.62, 49.58],
           },
         },
         {
@@ -226,7 +226,7 @@ export const mockPlaybooks: Playbook[] = [
           properties: { type: 'waypoint', index: 1, label: 'Clinic' },
           geometry: {
             type: 'Point',
-            coordinates: [22.655, 49.565],
+            coordinates: [22.71, 49.57],
           },
         },
         {
@@ -235,8 +235,8 @@ export const mockPlaybooks: Playbook[] = [
           geometry: {
             type: 'LineString',
             coordinates: [
-              [22.64, 49.59],
-              [22.655, 49.565],
+              [22.62, 49.58],
+              [22.71, 49.57],
             ],
           },
         },
