@@ -15,7 +15,6 @@ from olympe.messages.ardrone3.PilotingState import PositionChanged
 from olympe.messages.camera import (
     set_camera_mode, take_photo, start_recording, stop_recording
 )
-from olympe.messages.ardrone3.PilotingState import FlyingStateChanged
 from olympe.messages.gimbal import set_target
 
 from typing import List, Dict, Any, Optional
@@ -215,41 +214,23 @@ class OlympeTranslator:
 
         This is the core translation logic:
         Waypoint JSON → Olympe moveTo() command
-        
-        Uses separate calls to execute moveTo and wait for state change,
-        avoiding the >> operator syntax.
         """
         # Log the moveTo params
         print(f"moveTo params: lat={waypoint.lat}, lon={waypoint.lon}, alt={waypoint.alt}, orientation_mode=0, heading=0.0")
 
-        if not self.drone:
-            raise RuntimeError("Drone not connected. Call connect() first.")
 
         try:
-            # Execute moveTo command
-            move_result = self.drone(
-                moveTo(
-                    latitude=waypoint.lat,
-                    longitude=waypoint.lon,
-                    altitude=waypoint.alt,
-                    orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
-                    heading=0.0,  # mandatory parameter
-                )
-            ).wait(timeout=30)
-            
-            if not move_result.success():
-                raise RuntimeError(f"moveTo command failed: {move_result}")
-            
-            # Wait for hovering state separately (without >> operator)
-            # This pattern avoids the run_soon AttributeError
-            state_result = self.drone(
-                FlyingStateChanged(state="hovering", _timeout=30)
-            ).wait()
-            
-            if not state_result.success():
-                logger.warning(f"Hovering state not reached, but moveTo completed. Continuing...")
-            
-            print(f"MoveTo result: {move_result}, State result: {state_result}")
+            result = self.drone(moveTo(
+                latitude=waypoint.lat,
+                longitude=waypoint.lon,
+                altitude=waypoint.alt,
+                orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
+                heading=0.0, #mandatory parameter
+                # max_horizontal_speed=10.0,
+                # max_vertical_speed=2.0,
+                # max_yaw_rotation_speed=45.0
+            )).wait()
+            print(f"Result: {result}")
         except Exception as e:
             print("Error in moveTo")
             print(f"Error: {e}")
