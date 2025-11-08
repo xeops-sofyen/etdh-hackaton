@@ -15,6 +15,7 @@ from olympe.messages.ardrone3.PilotingState import PositionChanged
 from olympe.messages.camera import (
     set_camera_mode, take_photo, start_recording, stop_recording
 )
+from olympe.messages.ardrone3.PilotingState import FlyingStateChanged
 from olympe.messages.gimbal import set_target
 
 from typing import List, Dict, Any, Optional
@@ -220,16 +221,19 @@ class OlympeTranslator:
 
 
         try:
-            result = self.drone(moveTo(
-                latitude=waypoint.lat,
-                longitude=waypoint.lon,
-                altitude=waypoint.alt,
-                orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
-                heading=0.0, #mandatory parameter
-                # max_horizontal_speed=10.0,
-                # max_vertical_speed=2.0,
-                # max_yaw_rotation_speed=45.0
-            )).wait()
+            result = self.drone(
+                moveTo(
+                    latitude=waypoint.lat,
+                    longitude=waypoint.lon,
+                    altitude=waypoint.alt,
+                    orientation_mode=0,  # 0 = heading to target, 1 = keep current heading
+                    heading=0.0, #mandatory parameter
+                    # max_horizontal_speed=10.0,
+                    # max_vertical_speed=2.0,
+                    # max_yaw_rotation_speed=45.0
+                )
+                >> FlyingStateChanged(state="hovering", _timeout=10)
+            ).wait()
             print(f"Result: {result}")
         except Exception as e:
             print("Error in moveTo")
