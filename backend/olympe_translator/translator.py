@@ -6,6 +6,21 @@ YOUR CORE COMPONENT for the hackathon.
 Translates high-level mission playbooks into executable Olympe SDK commands.
 """
 
+# Compatibility shim for newer protobuf releases where MessageFactory.GetPrototype
+# was removed (v4+). Olympe still calls this legacy API, so we add it back by
+# delegating to the modern GetMessageClass when needed.
+try:
+    from google.protobuf import message_factory as _message_factory
+
+    if not hasattr(_message_factory.MessageFactory, "GetPrototype"):
+
+        def _get_prototype(self, descriptor):
+            return _message_factory.GetMessageClass(descriptor)
+
+        _message_factory.MessageFactory.GetPrototype = _get_prototype
+except Exception:  # pragma: no cover - best effort shim
+    pass
+
 import olympe
 from olympe.messages.ardrone3.Piloting import (
     TakeOff, Landing, moveTo, moveBy, Circle, PCMD

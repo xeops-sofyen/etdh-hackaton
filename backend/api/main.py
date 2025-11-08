@@ -251,40 +251,6 @@ async def get_playbook(filename: str):
     return data
 
 
-@app.post("/mission/parse-natural-language")
-async def parse_natural_language(request: NaturalLanguageRequest):
-    """
-    Parse natural language into a playbook
-
-    Example: "Patrol the coast near Wilhelmshaven"
-    → Generates structured playbook JSON
-    """
-    # TODO: Integrate with GPT-4 / LLM
-    # For now, return a template
-
-    logger.info(f"Parsing command: {request.command}")
-
-    # Simple keyword matching (replace with LLM in production)
-    if "patrol" in request.command.lower():
-        with open("playbooks/coastal_patrol.json") as f:
-            template = json.load(f)
-        return {
-            "status": "parsed",
-            "playbook": template,
-            "note": "Using template - integrate GPT-4 for real parsing"
-        }
-    elif "test" in request.command.lower():
-        with open("playbooks/simple_test.json") as f:
-            template = json.load(f)
-        return {
-            "status": "parsed",
-            "playbook": template
-        }
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not parse command. Try: 'patrol coastal area' or 'simple test flight'"
-        )
 
 
 # ============================================================================

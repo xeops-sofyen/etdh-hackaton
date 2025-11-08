@@ -29,7 +29,7 @@ Enable natural language mission planning through a Google ADK agent accessible v
 - Frontend will consume the API endpoints independently
 
 ### Chat API Behavior
-The `/adk/chat` endpoint must support **dual functionality**:
+The `/adk/chat` endpoint is the **ONLY endpoint** for natural language mission planning. It supports:
 1. **Conversational responses** - Agent responds to user questions, clarifications, refinements
 2. **Playbook generation** - When the agent generates a playbook during conversation, it must be included in the response
 
@@ -47,6 +47,11 @@ The `/adk/chat` endpoint must support **dual functionality**:
 - Frontend displays `agent_response` in chat interface
 - If `playbook` is not null, frontend also displays the playbook (visual representation)
 - User can continue chatting to refine, or execute the playbook if `ready_to_execute` is true
+
+**Important:**
+- The old `/mission/parse-natural-language` endpoint will be REMOVED
+- `/adk/generate-playbook` will NOT be created (redundant with `/adk/chat`)
+- All natural language processing happens through `/adk/chat`
 
 ---
 
@@ -284,10 +289,6 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     context: Optional[dict] = None
 
-class PlaybookGenerationRequest(BaseModel):
-    command: str
-    validate: bool = True
-
 @router.post("/chat")
 async def chat_with_agent(request: ChatRequest):
     """
@@ -324,45 +325,6 @@ async def chat_with_agent(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/generate-playbook")
-async def generate_playbook(request: PlaybookGenerationRequest):
-    """
-    Generate a mission playbook from natural language
-    
-    Example:
-    {
-        "command": "Patrol coastal area, take photos every 100m, altitude 50m"
-    }
-    """
-    try:
-        result = await plan_mission(request.command)
-        
-        if not result['playbook']:
-            raise HTTPException(
-                status_code=400,
-                detail="Could not generate playbook from command"
-            )
-        
-        # Validate if requested
-        if request.validate:
-            from backend.olympe_translator.translator import PlaybookValidator
-            validator = PlaybookValidator()
-            is_valid, error = validator.validate(result['playbook'])
-            
-            if not is_valid:
-                raise HTTPException(status_code=400, detail=error)
-        
-        return {
-            "status": "success",
-            "playbook": result['playbook'],
-            "explanation": result['agent_response'],
-        }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @router.get("/sessions/{session_id}")
 async def get_session(session_id: str):
     """Retrieve conversation history"""
@@ -391,38 +353,15 @@ Add route registration:
 app.include_router(adk_routes.router)
 ```
 
-#### 3.3 Replace Placeholder Endpoint
+#### 3.3 Remove Old Endpoint
 
-Update the existing `/mission/parse-natural-language` endpoint to use ADK:
-
-```python
-@app.post("/mission/parse-natural-language")
-async def parse_natural_language(request: NaturalLanguageRequest):
-    """
-    Parse natural language into a playbook using ADK agent
-    """
-    from backend.adk_agent.agent import plan_mission
-    
-    logger.info(f"Parsing command with ADK: {request.command}")
-    
-    try:
-        result = await plan_mission(request.command)
-        
-        return {
-            "status": "parsed",
-            "playbook": result['playbook'],
-            "explanation": result['agent_response'],
-        }
-    except Exception as e:
-        logger.error(f"ADK parsing failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-```
+The existing `/mission/parse-natural-language` endpoint will be REMOVED as all natural language processing is now handled by `/adk/chat`.
 
 **Acceptance Criteria:**
-- ✅ `/adk/chat` endpoint returns agent responses
-- ✅ `/adk/generate-playbook` creates valid playbooks
+- ✅ `/adk/chat` endpoint returns agent responses and playbooks
 - ✅ Session management works across requests
 - ✅ Integration with existing validation pipeline
+- ✅ Old `/mission/parse-natural-language` endpoint removed
 
 ---
 
@@ -464,17 +403,16 @@ def assess_mission_risk(playbook: MissionPlaybook) -> dict:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/adk/chat` | Chat with agent for mission planning |
-| `POST` | `/adk/generate-playbook` | Generate playbook from NL |
+| `POST` | `/adk/chat` | **PRIMARY ENDPOINT**: Chat with agent for mission planning & playbook generation |
 | `GET` | `/adk/sessions/{session_id}` | Get conversation history |
 | `DELETE` | `/adk/sessions/{session_id}` | Clear session |
-| `WS` | `/adk/ws/chat` | Stream agent responses (Phase 4) |
+| `WS` | `/adk/ws/chat` | Stream agent responses (Future: Phase 4) |
 
-### Updated Endpoints
+### Removed Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/mission/parse-natural-language` | Now uses ADK agent |
+| Method | Endpoint | Reason |
+|--------|----------|--------|
+| `POST` | `/mission/parse-natural-language` | Replaced by `/adk/chat` |
 
 ---
 
@@ -513,12 +451,15 @@ curl -X POST http://localhost:8000/adk/chat \
 ### Example 2: Generate and Execute
 
 ```bash
-# 1. Generate playbook
-curl -X POST http://localhost:8000/adk/generate-playbook \
-  -d '{"command": "Simple test flight at 30m"}'
+# 1. Generate playbook via chat
+curl -X POST http://localhost:8000/adk/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Simple test flight at 30m"}'
+# Returns: playbook in response
 
 # 2. Execute mission
 curl -X POST http://localhost:8000/mission/execute \
+  -H "Content-Type: application/json" \
   -d '{"playbook": {...}}'
 ```
 
