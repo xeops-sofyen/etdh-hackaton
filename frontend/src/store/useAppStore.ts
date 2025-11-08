@@ -8,10 +8,16 @@ interface AppStore {
   selectedPlaybookId: string | null;
   addPlaybook: (playbook: Playbook) => void;
   selectPlaybook: (id: string) => void;
+  updatePlaybookStatus: (id: string, status: Playbook['status']) => void;
 
   // Live drone states (from WebSocket)
   drones: Map<string, DroneState>; // Keyed by playbookId
   updateDrone: (playbookId: string, state: Partial<DroneState>) => void;
+
+  // Mission control
+  startMission: (playbookId: string) => void;
+  pauseMission: (playbookId: string) => void;
+  abortMission: (playbookId: string) => void;
 
   // Approvals
   pendingApprovals: Approval[];
@@ -45,6 +51,42 @@ export const useAppStore = create<AppStore>((set) => ({
     set({
       selectedPlaybookId: id,
     }),
+
+  updatePlaybookStatus: (id, status) =>
+    set((state) => ({
+      playbooks: state.playbooks.map((p) =>
+        p.id === id ? { ...p, status } : p
+      ),
+    })),
+
+  // Mission control actions
+  startMission: (playbookId) =>
+    set((state) => ({
+      playbooks: state.playbooks.map((p) =>
+        p.id === playbookId ? { ...p, status: 'active' } : p
+      ),
+    })),
+
+  pauseMission: (playbookId) =>
+    set((state) => {
+      // Keep as active but update drone status to idle
+      const newDrones = new Map(state.drones);
+      const existingDrone = newDrones.get(playbookId);
+      if (existingDrone) {
+        newDrones.set(playbookId, {
+          ...existingDrone,
+          status: 'idle',
+        });
+      }
+      return { drones: newDrones };
+    }),
+
+  abortMission: (playbookId) =>
+    set((state) => ({
+      playbooks: state.playbooks.map((p) =>
+        p.id === playbookId ? { ...p, status: 'failed' } : p
+      ),
+    })),
 
   // Drone actions
   updateDrone: (playbookId, droneState) =>
