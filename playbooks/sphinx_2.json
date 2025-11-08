@@ -1,0 +1,98 @@
+{
+  "mission_id": "sphinx_2_001",
+  "mission_type": "patrol",
+  "description": "Sphinx 2 mission with 10 waypoints",
+  "area_of_interest": null,
+  "waypoints": [
+    {
+      "lat": 49.58575040200362,
+      "lon": 22.714597370685564,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.58641761862603,
+      "lon": 22.704303150951084,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.58597280855832,
+      "lon": 22.694866782861162,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.58363748916603,
+      "lon": 22.689891243322823,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.58174691064237,
+      "lon": 22.685601985100107,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.57752064670283,
+      "lon": 22.680454875232904,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.57496246702552,
+      "lon": 22.674106773063297,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.572515387074745,
+      "lon": 22.668959663196055,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.57051313949428,
+      "lon": 22.664498834644466,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    },
+    {
+      "lat": 49.56884453710396,
+      "lon": 22.659523295106133,
+      "alt": 100.0,
+      "action": "photo",
+      "hover_duration_sec": null
+    }
+  ],
+  "flight_parameters": {
+    "altitude_m": 100.0,
+    "speed_mps": 10.0,
+    "pattern": "direct",
+    "heading_mode": "auto"
+  },
+  "camera_settings": {
+    "mode": "photo",
+    "resolution": "4K",
+    "gimbal_tilt": -90,
+    "auto_capture_interval_sec": null
+  },
+  "contingencies": {
+    "low_battery": "return_to_home",
+    "gps_loss": "hover_and_alert",
+    "obstacle_detected": "reroute",
+    "communication_loss": "return_to_home"
+  },
+  "auto_execute": false,
+  "max_duration_min": 30.0
+}
