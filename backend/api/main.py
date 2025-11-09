@@ -17,6 +17,7 @@ import uuid
 from backend.playbook_parser.schema import MissionPlaybook
 from backend.playbook_parser.geojson_converter import geojson_to_playbook, validate_geojson
 from backend.drone_controller.controller import DroneController
+from backend.api.routes import adk_routes
 
 # Setup logging
 logging.basicConfig(
@@ -47,6 +48,9 @@ drone_controller = DroneController(simulator_mode=True)
 # In-memory playbook storage (use database in production)
 playbook_store: Dict[str, MissionPlaybook] = {}
 
+
+# Include ADK routes
+app.include_router(adk_routes.router)
 
 # ============================================================================
 # API MODELS

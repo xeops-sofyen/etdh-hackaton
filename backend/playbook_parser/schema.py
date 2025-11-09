@@ -22,7 +22,7 @@ class Coordinates(BaseModel):
 class AreaOfInterest(BaseModel):
     """Mission area definition"""
     center: Coordinates
-    radius_km: float = Field(..., gt=0, description="Radius in kilometers")
+    radius_km: float = Field(...,  description="Radius in kilometers")
 
 
 class Waypoint(BaseModel):
